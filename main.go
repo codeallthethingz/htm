@@ -2,26 +2,27 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+
+	"github.com/gorilla/mux"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
 	printEncoding(encode(Cup))
 	everything(Cup)
-	// for {
-	// 	fmt.Println("1 cup, 2 phone, 3 rectangle")
-	// 	reader := bufio.NewReader(os.Stdin)
-	// 	input, _ := reader.ReadString('\n')
-	// 	char := string([]byte(input)[0])
-	// 	if char == "1" {
-	// 		fmt.Println(encode(Cup))
-	// 	}
-	// 	if char == "2" {
-	// 		fmt.Println(encode(Phone))
-	// 	}
-	// 	if char == "3" {
-	// 		fmt.Println(encode(Rectangle))
-	// 	}
-	// }
+
+	router := mux.NewRouter()
+	SetupRoutes(router)
+
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = ":8000"
+	}
+	log.WithField("port", port).Info("http server listening")
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
 func encode(obj string) string {

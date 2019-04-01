@@ -13,16 +13,20 @@ type Cell struct {
 
 // SpatialPooler is a set of cells connecting to an input space
 type SpatialPooler struct {
-	Cells []Cell
+	Cells            []Cell
+	InputSpaceWidth  int
+	InputSpaceHeight int
 }
 
 // NewSpatialPooler create a new pooler.
-func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputSpaceSize int) *SpatialPooler {
+func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputSpaceWidth int, inputSpaceHeight int) *SpatialPooler {
 	spatialPooler := &SpatialPooler{
-		Cells: make([]Cell, spatialPoolerSize),
+		Cells:            make([]Cell, spatialPoolerSize),
+		InputSpaceWidth:  inputSpaceWidth,
+		InputSpaceHeight: inputSpaceHeight,
 	}
 
-	inputSpaceRandom := NewUniqueRand(inputSpaceSize)
+	inputSpaceRandom := NewUniqueRand(inputSpaceWidth * inputSpaceHeight)
 	for i := 0; i < len(spatialPooler.Cells); i++ {
 		inputSpaceRandom.Reset()
 		spatialPooler.Cells[i] = Cell{
@@ -31,7 +35,7 @@ func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int,
 			Permenances: []int{},
 		}
 		position := 0
-		for j := 0; j < inputSpaceSize; j++ {
+		for j := 0; j < inputSpaceWidth*inputSpaceHeight; j++ {
 			if rand.Int()%100 < inputSpacePotentialPoolPercent {
 
 				newCoord := inputSpaceRandom.Int()

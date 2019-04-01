@@ -9,6 +9,7 @@ import (
 
 // SetupRoutes defines all the routs that this server will handle.
 func SetupRoutes(router *mux.Router) {
+
 	router.HandleFunc("/", HomeHandler).
 		Methods("GET")
 	router.HandleFunc("/spatialPooler", SpatialPoolerHandler).
@@ -17,12 +18,9 @@ func SetupRoutes(router *mux.Router) {
 	router.NotFoundHandler = http.HandlerFunc(HomeHandler)
 }
 
-// SpatialPoolerSerializable for sending over http
-type SpatialPoolerSerializable struct{}
-
 // SpatialPoolerHandler returns a json rep of spatialpooler.
 func SpatialPoolerHandler(w http.ResponseWriter, r *http.Request) {
-	json, err := json.Marshal(&SpatialPoolerSerializable{})
+	json, err := json.Marshal(spatialPooler)
 	if err != nil {
 		panic(err)
 	}

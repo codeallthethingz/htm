@@ -7,11 +7,13 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
 )
 
+var spatialPooler *SpatialPooler
+
 func main() {
-	printEncoding(encode(Cup))
 	everything(Cup)
 
 	router := mux.NewRouter()
@@ -22,7 +24,12 @@ func main() {
 		port = ":8000"
 	}
 	log.WithField("port", port).Info("http server listening")
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	//cors optionsGoes Below
+	corsOpts := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:1234"}, //you service is available and allowed for this base url
+		AllowedMethods: []string{http.MethodGet, http.MethodPost},
+	})
+	log.Fatal(http.ListenAndServe(":"+port, corsOpts.Handler(router)))
 }
 
 func encode(obj string) string {
@@ -83,7 +90,7 @@ func countBits(obj string) (int, int) {
 // each of the pixels has a N% chance of being connected to every pixel in the spatial pooler
 func everything(image string) {
 	// sdr := encode(image)
-	spatialPooler := NewSpatialPooler(10, 40, 220)
+	spatialPooler = NewSpatialPooler(10, 40, 19, 11)
 	printSpatialPooler(image, spatialPooler)
 	// train(spatialPooler, sdr)
 }

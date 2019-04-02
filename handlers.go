@@ -13,6 +13,7 @@ func SetupRoutes(router *mux.Router) {
 
 	router.HandleFunc("/", HomeHandler).Methods("GET")
 	router.HandleFunc("/activeForInput/{image}", ActiveSpatialPoolerForInputHandler).Methods("GET")
+	router.HandleFunc("/learnings/{image}", LearningsHandler).Methods("GET")
 
 	router.NotFoundHandler = http.HandlerFunc(HomeHandler)
 }
@@ -24,6 +25,11 @@ type transfer struct {
 	Threshold     int
 	Overlap       int
 	Active        bool
+}
+
+// LearningsHandler returns a json rep of spatialpooler.
+func LearningsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(CupLearnings))
 }
 
 // ActiveSpatialPoolerForInputHandler returns a json rep of spatialpooler.
@@ -39,7 +45,7 @@ func ActiveSpatialPoolerForInputHandler(w http.ResponseWriter, r *http.Request) 
 	encoded := encode(image)
 	threshold := 5
 	overlap := 4
-	spatialPooler.Activate(encoded, threshold, overlap)
+	spatialPooler.Activate(encoded, threshold, overlap, false)
 	json, err := json.Marshal(&transfer{
 		SpatialPooler: spatialPooler,
 		Image:         image,

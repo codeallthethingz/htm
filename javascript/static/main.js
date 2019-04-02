@@ -1,27 +1,28 @@
-import $ from "jquery"
-import axios from "axios"
+import $ from 'jquery'
+import axios from 'axios'
 
 $(() => {
 
-  const cellWidth = 4
-  const cellHeight = 6
+  const cellWidth = 5
+  const cellHeight = 10
   const poolerCellHeight = 10
   const $environmentActive = $('#environmentActive')
 
-  function renderObjectToCanvas(object, $parent) {
+  function renderObjectToCanvas(object, $parent, title) {
     let spatialPooler = object.SpatialPooler
     let encoded = object.Encoded
     let image = object.Image
     let threshold = object.Threshold
     let overlap = object.Overlap
     let $canvas = $('<canvas>')
-    let spSquare = parseInt(Math.sqrt(spatialPooler.Cells.length))
+    let spSquare =  spatialPooler.Cells.length // parseInt(Math.sqrt(spatialPooler.Cells.length))
+    // $parent.append($('<p>' + title + '</p>'))
     $parent.append($canvas)
     const ctx = $canvas[0].getContext('2d')
     let canvasWidth = cellWidth * spatialPooler.InputSpaceWidth
     let canvasHeight = cellHeight * spatialPooler.InputSpaceHeight
     $canvas.attr('width', (canvasWidth + 30) * spSquare - 30)
-    $canvas.attr('height', 6000)
+    $canvas.attr('height', cellHeight * spatialPooler.InputSpaceHeight+10)
     ctx.font = cellHeight + 'px sans-serif'
     let xOffset = canvasWidth + 2*cellWidth
     let yOffset = canvasHeight + 2*cellHeight
@@ -45,14 +46,14 @@ $(() => {
         ctx.fillRect(x, y, cellWidth, cellHeight)
       }
     }
-    currentXOffset = 0
-    currentYOffset = canvasHeight + 30
+    currentXOffset += xOffset
+    currentYOffset += 10
     let g = 0;
     spatialPooler.Cells.forEach(cell => {
 
-      ctx.fillText("Cell " + cell.ID + ", Score: " + cell.Score + (cell.Active ? " (Active)" : ""), currentXOffset, currentYOffset)
+      ctx.fillText('Cell ' + cell.ID + ', Score: ' + cell.Score, currentXOffset, currentYOffset)
       if (cell.Active) {
-        ctx.fillStyle = "#7777FF"
+        ctx.fillStyle = 'rgba(0,0, 255, ' + Math.min(1, (cell.Score / 10)-0.2) + ')'
         ctx.fillRect(currentXOffset, currentYOffset, canvasWidth, canvasHeight)
       }
       cell.Coordinates.forEach(coord => {
@@ -68,7 +69,7 @@ $(() => {
         const y = parseInt(coord / spatialPooler.InputSpaceWidth) * cellHeight + currentYOffset
         ctx.fillRect(x, y, cellWidth, cellHeight)
         ctx.fillStyle = '#000000'
-        ctx.fillText(permanence > threshold ? permanence : permanence, x, y - 2 + cellHeight)
+        ctx.fillText(permanence == 0 ? "." : permanence > threshold ? permanence : permanence, x, y - 2 + cellHeight)
       })
       currentXOffset += xOffset
       g++
@@ -79,9 +80,14 @@ $(() => {
     })
     ctx.stroke()
   }
-  axios.get('http://localhost:3000/activeForInput/' + location.search.substring(7))
-    .then(function (response) {
-      renderObjectToCanvas(response.data, $environmentActive)
+  axios.get('http://localhost:3000/learnings/' + location.search.substring(7))
+    .then(function (response) { 
+      let i= 0
+      response.data.forEach(object => {
+        let $newDiv = $('<div>')
+        $('body').append($newDiv)
+        renderObjectToCanvas(object, $newDiv, 'Step ' + (++i) )
+      })
     })
 
 })

@@ -10,9 +10,10 @@ type Cell struct {
 	Coordinates []int
 	CoordLookup map[int]int
 	Permanences []int
-	Score       int
-	ID          string
-	Active      bool
+
+	Score  int
+	ID     string
+	Active bool
 }
 
 // SpatialPooler is a set of cells connecting to an input space
@@ -24,20 +25,35 @@ type SpatialPooler struct {
 }
 
 // Activate the cells in the spatial pooler for an encoded input
-func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overlap int) {
+func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overlap int, learning bool) {
 	for i, cell := range sp.Cells {
 		score := 0
 		hits := ""
 		for j, coord := range cell.Coordinates {
-			if encoded[coord] == "X"[0] && cell.Permanences[j] > connectionThreshold {
-				hits += fmt.Sprintf("%d[0.%d] ", coord, cell.Permanences[j])
-				score++
+			if encoded[coord] == "X"[0] {
+				if cell.Permanences[j] > connectionThreshold {
+					hits += fmt.Sprintf("%d[0.%d] ", coord, cell.Permanences[j])
+					score++
+				}
 			}
 		}
 		cell.Score = score
 		if score > overlap {
 			sp.ActivatedCells[i] = true
 			cell.Active = true
+
+			// learn
+			if learning {
+				for j, coord := range cell.Coordinates {
+					if encoded[coord] == "X"[0] {
+						if cell.Permanences[j] < 9 {
+							cell.Permanences[j]++
+						}
+					} else if cell.Permanences[j] > 0 {
+						cell.Permanences[j]--
+					}
+				}
+			}
 		}
 	}
 }

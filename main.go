@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,13 +12,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var spatialPooler *SpatialPooler
-
 func main() {
-	spatialPooler = NewSpatialPooler(100, 40, 19, 11)
 	router := mux.NewRouter()
 	SetupRoutes(router)
 
+	generateCupLearnings(10)
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = ":8000"
@@ -29,6 +28,39 @@ func main() {
 		AllowedMethods: []string{http.MethodGet, http.MethodPost},
 	})
 	log.Fatal(http.ListenAndServe(":"+port, corsOpts.Handler(router)))
+
+}
+
+// CupLearnings a string array of json marshalled spatial pooler.
+var CupLearnings string
+
+func generateCupLearnings(iterate int) {
+	CupLearnings += "["
+	encoded := encode(cup)
+	image := cup
+	spatialPooler := NewSpatialPooler(100, 40, 19, 11)
+	threshold := 5
+	overlap := 4
+	for i := 0; i < iterate; i++ {
+
+		spatialPooler.Activate(encoded, threshold, overlap, false)
+		if i > 0 {
+			spatialPooler.Activate(encoded, threshold, overlap, true)
+		}
+
+		json, _ := json.Marshal(&transfer{
+			SpatialPooler: spatialPooler,
+			Image:         image,
+			Encoded:       encoded,
+			Overlap:       overlap,
+			Threshold:     threshold,
+		})
+		CupLearnings += string(json)
+		if i < iterate-1 {
+			CupLearnings += ","
+		}
+	}
+	CupLearnings += "]"
 }
 
 func encode(obj string) string {
@@ -36,7 +68,6 @@ func encode(obj string) string {
 	totalBits := offBits + onBits
 	target := int(float64(totalBits) * 0.04)
 	return turnOffBits(obj, onBits, target)
-
 }
 
 func turnOffBits(obj string, currentlyOn int, targetOn int) string {

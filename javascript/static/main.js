@@ -1,55 +1,88 @@
-import objects from './objects/*.yml'  // loads all the yaml objects and parses them.
 import $ from "jquery"
 import axios from "axios"
 
 $(() => {
 
-  const cellWidth = 8
-  const cellHeight = 16
-    const $container = $('#environments')
+  const cellWidth = 4
+  const cellHeight = 6
+  const poolerCellHeight = 10
+  const $environmentActive = $('#environmentActive')
 
-    function renderObjectToCanvas(object, $parent) {
-        let $title = $('<div>').html(object.name)
-        let $canvas = $('<canvas>')
+  function renderObjectToCanvas(object, $parent) {
+    let spatialPooler = object.SpatialPooler
+    let encoded = object.Encoded
+    let image = object.Image
+    let threshold = object.Threshold
+    let overlap = object.Overlap
+    let $canvas = $('<canvas>')
+    let spSquare = parseInt(Math.sqrt(spatialPooler.Cells.length))
+    $parent.append($canvas)
+    const ctx = $canvas[0].getContext('2d')
+    let canvasWidth = cellWidth * spatialPooler.InputSpaceWidth
+    let canvasHeight = cellHeight * spatialPooler.InputSpaceHeight
+    $canvas.attr('width', (canvasWidth + 30) * spSquare - 30)
+    $canvas.attr('height', 6000)
+    ctx.font = cellHeight + 'px sans-serif'
+    let xOffset = canvasWidth + 2*cellWidth
+    let yOffset = canvasHeight + 2*cellHeight
+    let currentXOffset = 0
+    let currentYOffset = 0
 
-        $parent.append($title)
-        $parent.append($canvas)
-
-        const ctx = $canvas[0].getContext('2d')
-        $canvas.attr('width', (cellWidth * object.InputSpaceWidth + 30 ) * object.Cells.length)
-        $canvas.attr('height', cellHeight * object.InputSpaceHeight)
-        ctx.font = cellHeight + 'px sans-serif'
-        var offset = cellWidth * object.InputSpaceWidth + 30
-        var currentOffset = 0
-        object.Cells.forEach(cell => {
-          cell.Coordinates.forEach(coord => {
-            var permenance = cell.Permenances[cell.CoordLookup[coord]]
-            ctx.fillStyle = 'rgba(' + (10*permenance + 150) + ',50,50,' + permenance / 10 + ')'
-            ctx.fillRect((coord % object.InputSpaceWidth) * cellWidth + currentOffset, parseInt(coord / object.InputSpaceHeight ) * cellHeight - cellHeight, cellWidth, cellHeight)
-            ctx.fillStyle = '#000000'
-            ctx.fillText(
-              permenance > 6 ? "x" : " ",
-              (coord % object.InputSpaceWidth) * cellWidth + currentOffset,
-              parseInt(coord / object.InputSpaceHeight ) * cellHeight -2)
-            })
-            currentOffset += offset
-        })
+    for (var i = 0; i < image.length; i++) {
+      const x = (i % spatialPooler.InputSpaceWidth) * cellWidth + currentXOffset;
+      const y = parseInt(i / spatialPooler.InputSpaceWidth) * cellHeight + currentYOffset;
+      if (image.charAt(i) === 'X') {
+        ctx.fillStyle = '#0000000'
+        ctx.fillRect(x, y, cellWidth, cellHeight)
+      }
     }
+    currentXOffset += xOffset
+    for (var i = 0; i < encoded.length; i++) {
+      const x = (i % spatialPooler.InputSpaceWidth) * cellWidth + currentXOffset;
+      const y = parseInt(i / spatialPooler.InputSpaceWidth) * cellHeight + currentYOffset;
+      if (encoded.charAt(i) === 'X') {
+        ctx.fillStyle = '#0000000'
+        ctx.fillRect(x, y, cellWidth, cellHeight)
+      }
+    }
+    currentXOffset = 0
+    currentYOffset = canvasHeight + 30
+    let g = 0;
+    spatialPooler.Cells.forEach(cell => {
 
-    // render all the objects
-    Object.values(objects).forEach((value) => {
-        renderObjectToCanvas(value, $container)
+      ctx.fillText("Cell " + cell.ID + ", Score: " + cell.Score + (cell.Active ? " (Active)" : ""), currentXOffset, currentYOffset)
+      if (cell.Active) {
+        ctx.fillStyle = "#7777FF"
+        ctx.fillRect(currentXOffset, currentYOffset, canvasWidth, canvasHeight)
+      }
+      cell.Coordinates.forEach(coord => {
+        let permanence = cell.Permanences[cell.CoordLookup[coord]]
+        ctx.fillStyle = '#FFFFFF'
+        if (permanence > threshold) {
+          ctx.fillStyle = '#FFCCCC'
+        }
+        if (permanence > threshold && encoded && encoded.charAt(coord) === 'X') {
+          ctx.fillStyle = '#7777FF'
+        }
+        const x = (coord % spatialPooler.InputSpaceWidth) * cellWidth + currentXOffset
+        const y = parseInt(coord / spatialPooler.InputSpaceWidth) * cellHeight + currentYOffset
+        ctx.fillRect(x, y, cellWidth, cellHeight)
+        ctx.fillStyle = '#000000'
+        ctx.fillText(permanence > threshold ? permanence : permanence, x, y - 2 + cellHeight)
+      })
+      currentXOffset += xOffset
+      g++
+      if (g % spSquare == 0) {
+        currentXOffset = 0
+        currentYOffset += yOffset
+      }
     })
+    ctx.stroke()
+  }
 
-    
-    axios.get('http://localhost:3000/spatialPooler')
+  axios.get('http://localhost:3000/activeForInput/cup')
     .then(function (response) {
-      // handle success
-      console.log(response.data)
-      renderObjectToCanvas(response.data, $container)
+      renderObjectToCanvas(response.data, $environmentActive)
     })
-  
-    // Or render them individually
-    // renderObjectToCanvas(objects['a'], $container)
 
 })

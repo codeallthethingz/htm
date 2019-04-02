@@ -1,7 +1,9 @@
 package main
 
-// Cup image of a cup
-var Cup = "" +
+// Images holds a list of images
+var Images = map[string]string{"cup": cup, "phone": phone, "rectangle": rectangle}
+
+var cup = "" +
 	"                   " +
 	"                   " +
 	"                   " +
@@ -14,8 +16,7 @@ var Cup = "" +
 	"                   " +
 	"                   "
 
-// Phone image of phone
-var Phone = "" +
+var phone = "" +
 	"                   " +
 	"   XXXXXXXXXXX     " +
 	"   X         X     " +
@@ -28,8 +29,7 @@ var Phone = "" +
 	"   XXXXXXXXXXX     " +
 	"                   "
 
-// Rectangle image of rect
-var Rectangle = "" +
+var rectangle = "" +
 	"                   " +
 	"   XXXXXXXXXXX     " +
 	"   XXXXXXXXXXX     " +

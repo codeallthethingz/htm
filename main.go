@@ -14,8 +14,7 @@ import (
 var spatialPooler *SpatialPooler
 
 func main() {
-	everything(Cup)
-
+	spatialPooler = NewSpatialPooler(100, 40, 19, 11)
 	router := mux.NewRouter()
 	SetupRoutes(router)
 
@@ -86,15 +85,6 @@ func countBits(obj string) (int, int) {
 	return onBits, offBits
 }
 
-// Map encoding space to input space.
-// each of the pixels has a N% chance of being connected to every pixel in the spatial pooler
-func everything(image string) {
-	// sdr := encode(image)
-	spatialPooler = NewSpatialPooler(10, 40, 19, 11)
-	printSpatialPooler(image, spatialPooler)
-	// train(spatialPooler, sdr)
-}
-
 func printSpatialPooler(image string, spatialPooler *SpatialPooler) {
 	for j := 0; j < 11; j++ {
 		for i := 0; i < len(spatialPooler.Cells); i++ {
@@ -105,12 +95,12 @@ func printSpatialPooler(image string, spatialPooler *SpatialPooler) {
 				}
 				index, ok := spatialPooler.Cells[i].CoordLookup[c]
 				if ok {
-					fmt.Print(spatialPooler.Cells[i].Permenances[index])
+					fmt.Print(spatialPooler.Cells[i].Permanences[index])
 				} else {
 					fmt.Print(" ")
 				}
 			}
-			fmt.Println()
+			fmt.Print("\n")
 		}
 	}
 }
@@ -123,5 +113,5 @@ func printEncoding(encoding string) {
 		}
 		fmt.Print(string(encoding[c]))
 	}
-	fmt.Println()
+	fmt.Print("\n")
 }

@@ -79,8 +79,7 @@ $(() => {
     })
     ctx.stroke()
   }
-
-  axios.get('http://localhost:3000/activeForInput/cup')
+  axios.get('http://localhost:3000/activeForInput/' + location.search.substring(7))
     .then(function (response) {
       renderObjectToCanvas(response.data, $environmentActive)
     })

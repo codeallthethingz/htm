@@ -11,10 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var spatialPooler *SpatialPooler
-
 func main() {
-	spatialPooler = NewSpatialPooler(100, 40, 19, 11)
 	router := mux.NewRouter()
 	SetupRoutes(router)
 

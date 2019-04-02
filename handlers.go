@@ -11,12 +11,8 @@ import (
 // SetupRoutes defines all the routs that this server will handle.
 func SetupRoutes(router *mux.Router) {
 
-	router.HandleFunc("/", HomeHandler).
-		Methods("GET")
-	router.HandleFunc("/spatialPooler", SpatialPoolerHandler).
-		Methods("GET")
-	router.HandleFunc("/activeForInput/{image}", ActiveSpatialPoolerForInputHandler).
-		Methods("GET")
+	router.HandleFunc("/", HomeHandler).Methods("GET")
+	router.HandleFunc("/activeForInput/{image}", ActiveSpatialPoolerForInputHandler).Methods("GET")
 
 	router.NotFoundHandler = http.HandlerFunc(HomeHandler)
 }
@@ -32,13 +28,16 @@ type transfer struct {
 
 // ActiveSpatialPoolerForInputHandler returns a json rep of spatialpooler.
 func ActiveSpatialPoolerForInputHandler(w http.ResponseWriter, r *http.Request) {
+
 	params := mux.Vars(r)
 	if paramsNotOk(w, params) {
 		return
 	}
+
+	spatialPooler := NewSpatialPooler(900, 40, 19, 11)
 	image := Images[params["image"]]
 	encoded := encode(image)
-	threshold := 3
+	threshold := 5
 	overlap := 4
 	spatialPooler.Activate(encoded, threshold, overlap)
 	json, err := json.Marshal(&transfer{
@@ -69,15 +68,6 @@ func paramsNotOk(w http.ResponseWriter, params map[string]string) bool {
 func response(w http.ResponseWriter, code int, message string) {
 	w.WriteHeader(code)
 	w.Write([]byte(message))
-}
-
-// SpatialPoolerHandler returns a json rep of spatialpooler.
-func SpatialPoolerHandler(w http.ResponseWriter, r *http.Request) {
-	json, err := json.Marshal(&transfer{SpatialPooler: spatialPooler})
-	if err != nil {
-		panic(err)
-	}
-	w.Write([]byte(json))
 }
 
 // HomeHandler creates an index page.

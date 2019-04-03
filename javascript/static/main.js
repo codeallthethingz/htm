@@ -8,24 +8,23 @@ $(() => {
   const poolerCellHeight = 10
   const $environmentActive = $('#environmentActive')
 
-  function renderObjectToCanvas(object, $parent, title) {
+  function renderObjectToCanvas(object, $parent) {
     let spatialPooler = object.SpatialPooler
     let encoded = object.Encoded
     let image = object.Image
     let threshold = object.Threshold
     let overlap = object.Overlap
     let $canvas = $('<canvas>')
-    let spSquare =  spatialPooler.Cells.length // parseInt(Math.sqrt(spatialPooler.Cells.length))
-    // $parent.append($('<p>' + title + '</p>'))
+    let spSquare = spatialPooler.Cells.length 
     $parent.append($canvas)
     const ctx = $canvas[0].getContext('2d')
     let canvasWidth = cellWidth * spatialPooler.InputSpaceWidth
     let canvasHeight = cellHeight * spatialPooler.InputSpaceHeight
     $canvas.attr('width', (canvasWidth + 30) * spSquare - 30)
-    $canvas.attr('height', cellHeight * spatialPooler.InputSpaceHeight+10)
+    $canvas.attr('height', cellHeight * spatialPooler.InputSpaceHeight + 10)
     ctx.font = cellHeight + 'px sans-serif'
-    let xOffset = canvasWidth + 2*cellWidth
-    let yOffset = canvasHeight + 2*cellHeight
+    let xOffset = canvasWidth + 2 * cellWidth
+    let yOffset = canvasHeight + 2 * cellHeight
     let currentXOffset = 0
     let currentYOffset = 0
 
@@ -53,7 +52,7 @@ $(() => {
 
       ctx.fillText('Cell ' + cell.ID + ', Score: ' + cell.Score, currentXOffset, currentYOffset)
       if (cell.Active) {
-        ctx.fillStyle = 'rgba(0,0, 255, ' + Math.min(1, (cell.Score / 10)-0.2) + ')'
+        ctx.fillStyle = 'rgba(0,0, 255, ' + Math.min(1, (cell.Score / 10) - 0.2) + ')'
         ctx.fillRect(currentXOffset, currentYOffset, canvasWidth, canvasHeight)
       }
       cell.Coordinates.forEach(coord => {
@@ -80,14 +79,14 @@ $(() => {
     })
     ctx.stroke()
   }
-  axios.get('http://localhost:3000/learnings/' + location.search.substring(7))
-    .then(function (response) { 
-      let i= 0
-      response.data.forEach(object => {
+  function learn(image) {
+    axios.get('http://localhost:3000/learnings/' + image)
+      .then(function (response) {
         let $newDiv = $('<div>')
-        $('body').append($newDiv)
-        renderObjectToCanvas(object, $newDiv, 'Step ' + (++i) )
+        $('#canvases').prepend($newDiv)
+        renderObjectToCanvas(response.data, $newDiv)
       })
-    })
-
+  }
+  $('button').on('click', (e) => {learn(e.target.id);})
 })
+

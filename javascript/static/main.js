@@ -3,31 +3,33 @@ import axios from 'axios'
 
 $(() => {
 
-  const cellWidth = 5
-  const cellHeight = 10
-  const poolerCellHeight = 10
-  const $environmentActive = $('#environmentActive')
+  const cellWidth = 3
+  const cellHeight = 3
+  const pooler = 0.5
 
   function renderObjectToCanvas(object, $parent) {
     let spatialPooler = object.SpatialPooler
     let encoded = object.Encoded
     let image = object.Image
     let threshold = object.Threshold
+    let imageWidth = spatialPooler.InputSpaceWidth
+    let imageHeight = spatialPooler.InputSpaceHeight
     let overlap = object.Overlap
     let $canvas = $('<canvas>')
-    let spSquare = spatialPooler.Cells.length 
+    let spSquare = parseInt(spatialPooler.Cells.length)  
     $parent.append($canvas)
     const ctx = $canvas[0].getContext('2d')
-    let canvasWidth = cellWidth * spatialPooler.InputSpaceWidth
-    let canvasHeight = cellHeight * spatialPooler.InputSpaceHeight
-    $canvas.attr('width', (canvasWidth + 30) * spSquare - 30)
-    $canvas.attr('height', cellHeight * spatialPooler.InputSpaceHeight + 10)
+    let canvasWidth = cellWidth * imageWidth
+    let canvasHeight = cellHeight * imageHeight
+    let xOffset = canvasWidth + 2 * pooler
+    let yOffset = canvasHeight + 2 * pooler
+    $canvas.attr('width', Math.min(100000, (canvasWidth * 2 + 30) + (spatialPooler.Cells.length) * pooler * imageWidth - 30))
+    $canvas.attr('height', cellHeight * imageHeight + 10)
     ctx.font = cellHeight + 'px sans-serif'
-    let xOffset = canvasWidth + 2 * cellWidth
-    let yOffset = canvasHeight + 2 * cellHeight
     let currentXOffset = 0
     let currentYOffset = 0
 
+    // raw image
     for (var i = 0; i < image.length; i++) {
       const x = (i % spatialPooler.InputSpaceWidth) * cellWidth + currentXOffset;
       const y = parseInt(i / spatialPooler.InputSpaceWidth) * cellHeight + currentYOffset;
@@ -36,6 +38,7 @@ $(() => {
         ctx.fillRect(x, y, cellWidth, cellHeight)
       }
     }
+    // encoded image
     currentXOffset += xOffset
     for (var i = 0; i < encoded.length; i++) {
       const x = (i % spatialPooler.InputSpaceWidth) * cellWidth + currentXOffset;
@@ -45,6 +48,8 @@ $(() => {
         ctx.fillRect(x, y, cellWidth, cellHeight)
       }
     }
+
+    // Spatial Pooler cells.
     currentXOffset += xOffset
     currentYOffset += 10
     let g = 0;
@@ -53,7 +58,7 @@ $(() => {
       ctx.fillText('Cell ' + cell.ID + ', Score: ' + cell.Score, currentXOffset, currentYOffset)
       if (cell.Active) {
         ctx.fillStyle = 'rgba(0,0, 255, ' + Math.min(1, (cell.Score / 10) - 0.2) + ')'
-        ctx.fillRect(currentXOffset, currentYOffset, canvasWidth, canvasHeight)
+        ctx.fillRect(currentXOffset, currentYOffset, pooler*imageWidth, pooler*imageHeight)
       }
       cell.Coordinates.forEach(coord => {
         let permanence = cell.Permanences[cell.CoordLookup[coord]]
@@ -64,17 +69,19 @@ $(() => {
         if (permanence > threshold && encoded && encoded.charAt(coord) === 'X') {
           ctx.fillStyle = '#7777FF'
         }
-        const x = (coord % spatialPooler.InputSpaceWidth) * cellWidth + currentXOffset
-        const y = parseInt(coord / spatialPooler.InputSpaceWidth) * cellHeight + currentYOffset
-        ctx.fillRect(x, y, cellWidth, cellHeight)
-        ctx.fillStyle = '#000000'
-        ctx.fillText(permanence == 0 ? "." : permanence > threshold ? permanence : permanence, x, y - 2 + cellHeight)
+        const x = (coord % spatialPooler.InputSpaceWidth) * pooler + currentXOffset
+        const y = parseInt(coord / spatialPooler.InputSpaceWidth) * pooler + currentYOffset
+        ctx.fillRect(x, y, pooler, pooler)
+        if (pooler > 8) {
+          ctx.fillStyle = '#000000'
+          ctx.fillText(permanence == 0 ? "." : permanence > threshold ? permanence : permanence, x, y - 2 + cellHeight)
+        }
       })
-      currentXOffset += xOffset
+      currentXOffset += pooler*imageWidth
       g++
       if (g % spSquare == 0) {
-        currentXOffset = 0
-        currentYOffset += yOffset
+        currentXOffset = xOffset+xOffset
+        currentYOffset += pooler*imageHeight
       }
     })
     ctx.stroke()
@@ -87,6 +94,6 @@ $(() => {
         renderObjectToCanvas(response.data, $newDiv)
       })
   }
-  $('button').on('click', (e) => {learn(e.target.id);})
+  $('button').on('click', (e) => { learn(e.target.id); })
 })
 

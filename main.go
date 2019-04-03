@@ -2,38 +2,91 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"os"
-
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
-	log "github.com/sirupsen/logrus"
 )
 
+var threshold = 2
+var overlap = 11
+
 func main() {
-	router := mux.NewRouter()
-	SetupRoutes(router)
-	port := os.Getenv("PORT")
-	if len(port) == 0 {
-		port = ":8000"
-	}
-	log.WithField("port", port).Info("http server listening")
-	corsOpts := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:1234"}, //you service is available and allowed for this base url
-		AllowedMethods: []string{http.MethodGet, http.MethodPost},
-	})
-	log.Fatal(http.ListenAndServe(":"+port, corsOpts.Handler(router)))
+	spatialPooler := trainMNIST()
+	scoreMNIST(spatialPooler)
+
+	// router := mux.NewRouter()
+	// SetupRoutes(router)
+	// port := os.Getenv("PORT")
+	// if len(port) == 0 {
+	// 	port = "8000"
+	// }
+	// log.WithField("port", port).Info("http server listening")
+	// corsOpts := cors.New(cors.Options{
+	// 	AllowedOrigins: []string{"http://localhost:1234"}, //you service is available and allowed for this base url
+	// 	AllowedMethods: []string{http.MethodGet, http.MethodPost},
+	// })
+	// log.Fatal(http.ListenAndServe(":"+port, corsOpts.Handler(router)))
 }
 
-func encode(obj string) string {
+func scoreMNIST(spatialPooler *SpatialPooler) {
+	correct := 0
+	incorrect := 0
+	dataSet, err := ReadTestSet("./mnist")
+	if err != nil {
+		panic(err)
+	}
+
+	for imageIndex := 0; imageIndex < 500; imageIndex++ {
+		data := dataSet.Data[imageIndex].Image
+		digit := dataSet.Data[imageIndex].Digit
+		image := createImage(data)
+		encoded := encode(image, dataSet.W)
+		guess := spatialPooler.WhatIsIt(encoded, threshold, overlap)
+		// if digit == 0 {
+		// 	continue
+		// }
+		if guess == fmt.Sprintf("%d", digit) {
+			fmt.Print("--> ")
+			correct++
+		} else {
+			incorrect++
+		}
+		fmt.Printf("Actual: %d, Guess: %s\n", digit, guess)
+	}
+	fmt.Printf("Results, correct: %d, incorrect: %d, accuracy: %f\n", correct, incorrect, (float32(correct)/float32(incorrect+correct))*100)
+}
+
+func trainMNIST() *SpatialPooler {
+	if spatialPooler == nil {
+		spatialPooler = NewSpatialPooler(10000, 40, 28, 28)
+	}
+	dataSet, err := ReadTrainSet("./mnist")
+	if err != nil {
+		panic(err)
+	}
+
+	// for i := 1; i < 10; i++ {
+	for imageIndex := 0; imageIndex < 1000; imageIndex++ {
+		data := dataSet.Data[imageIndex].Image
+		digit := dataSet.Data[imageIndex].Digit
+		// if digit != 0 {
+		image := createImage(data)
+		encoded := encode(image, dataSet.W)
+		spatialPooler.Activate(encoded, threshold, overlap, true, fmt.Sprintf("%d", digit))
+		spatialPooler.Deactivate()
+		// }
+		// }
+	}
+	return spatialPooler
+
+}
+
+func encode(obj string, lineLength int) string {
 	onBits, offBits := countBits(obj)
 	totalBits := offBits + onBits
 	target := int(float64(totalBits) * 0.04)
-	return turnOffBits(obj, onBits, target)
+	return turnOffBits(obj, onBits, target, lineLength)
 }
 
-func turnOffBits(obj string, currentlyOn int, targetOn int) string {
-	lineLength := 19
+func turnOffBits(obj string, currentlyOn int, targetOn int, lineLength int) string {
+	// fmt.Printf("encoding object starting length: %d, on: %d, target: %d\n", len(obj), currentlyOn, targetOn)
 	newObj := ""
 	for c := range obj {
 		if currentlyOn > targetOn && c > 0 && obj[c-1] == "X"[0] && obj[c] == "X"[0] && c < len(obj) && obj[c+1] == "X"[0] {
@@ -51,7 +104,6 @@ func turnOffBits(obj string, currentlyOn int, targetOn int) string {
 		} else {
 			superNewObj += string(newObj[c])
 		}
-
 	}
 	newObj = ""
 	for c := range superNewObj {
@@ -62,6 +114,9 @@ func turnOffBits(obj string, currentlyOn int, targetOn int) string {
 			newObj += string(superNewObj[c])
 		}
 	}
+
+	// onBits, _ := countBits(newObj)
+	// fmt.Printf("encoding object finishing length: %d, currentlyOn: %d\n", len(newObj), onBits)
 	return newObj
 }
 
@@ -98,9 +153,9 @@ func printSpatialPooler(image string, spatialPooler *SpatialPooler) {
 	}
 }
 
-func printEncoding(encoding string) {
+func printEncoding(encoding string, width int) {
 	for c := range encoding {
-		if c%19 == 0 {
+		if c%width == 0 {
 			fmt.Print("\n")
 		}
 		fmt.Print(string(encoding[c]))

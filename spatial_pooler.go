@@ -16,16 +16,63 @@ type Cell struct {
 	Active bool
 }
 
+// PatternAndSymbol things that were learned.
+type PatternAndSymbol struct {
+	Symbol  string
+	Pattern []bool
+}
+
 // SpatialPooler is a set of cells connecting to an input space
 type SpatialPooler struct {
 	Cells            []*Cell
 	ActivatedCells   map[int]bool
 	InputSpaceWidth  int
 	InputSpaceHeight int
+	ThingsLearned    []*PatternAndSymbol
+}
+
+// Deactivate reset all the parts that were used in the proceding learning phase
+func (sp *SpatialPooler) Deactivate() {
+	sp.ActivatedCells = map[int]bool{}
+	for _, cell := range sp.Cells {
+		cell.Active = false
+		cell.Score = 0
+	}
+}
+
+// WhatIsIt returns the symbol from the highest possible match from the things learned array.
+func (sp *SpatialPooler) WhatIsIt(encoded string, connectionThreshold int, overlap int) string {
+	sp.Activate(encoded, connectionThreshold, overlap, false, "")
+	targetPattern := make([]bool, len(sp.Cells))
+	for i, cell := range sp.Cells {
+		targetPattern[i] = cell.Active
+	}
+	patternAndSymbol := sp.findBestMatch(targetPattern)
+	sp.Deactivate()
+	return patternAndSymbol.Symbol
+}
+
+func (sp *SpatialPooler) findBestMatch(targetPattern []bool) *PatternAndSymbol {
+	bestMatch := &PatternAndSymbol{
+		Symbol: "#",
+	}
+	bestScore := 0
+	for _, currentPattern := range sp.ThingsLearned {
+		score := 0
+		for i, active := range currentPattern.Pattern {
+			if active && targetPattern[i] {
+				score++
+			}
+		}
+		if score > bestScore {
+			bestMatch = currentPattern
+		}
+	}
+	return bestMatch
 }
 
 // Activate the cells in the spatial pooler for an encoded input
-func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overlap int, learning bool) {
+func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overlap int, learning bool, symbol string) {
 	for i, cell := range sp.Cells {
 		score := 0
 		hits := ""
@@ -42,7 +89,7 @@ func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overl
 			sp.ActivatedCells[i] = true
 			cell.Active = true
 
-			// learn
+			// learn - change dendrite permanences
 			if learning {
 				for j, coord := range cell.Coordinates {
 					if encoded[coord] == "X"[0] {
@@ -55,7 +102,31 @@ func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overl
 				}
 			}
 		}
+
 	}
+	if learning {
+		patternAndSymbol := &PatternAndSymbol{
+			Pattern: make([]bool, len(sp.Cells)),
+			Symbol:  symbol,
+		}
+		for i, cell := range sp.Cells {
+			patternAndSymbol.Pattern[i] = cell.Active
+		}
+		sp.ThingsLearned = append(sp.ThingsLearned, patternAndSymbol)
+		printPattern(patternAndSymbol)
+	}
+}
+
+func printPattern(patternAndSymbol *PatternAndSymbol) {
+	fmt.Printf("%s: ", patternAndSymbol.Symbol)
+	for _, p := range patternAndSymbol.Pattern {
+		if p {
+			fmt.Print("_")
+		} else {
+			// fmt.Print("")
+		}
+	}
+	fmt.Println()
 }
 
 // NewSpatialPooler create a new pooler.

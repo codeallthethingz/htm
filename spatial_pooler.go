@@ -10,10 +10,9 @@ type Cell struct {
 	Coordinates []int
 	CoordLookup map[int]int
 	Permanences []int
-
-	Score  int
-	ID     string
-	Active bool
+	Score       int
+	ID          string
+	Active      bool
 }
 
 // SpatialPooler is a set of cells connecting to an input space
@@ -28,11 +27,9 @@ type SpatialPooler struct {
 func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overlap int, learning bool) {
 	for i, cell := range sp.Cells {
 		score := 0
-		hits := ""
 		for j, coord := range cell.Coordinates {
 			if encoded[coord] == "X"[0] {
 				if cell.Permanences[j] > connectionThreshold {
-					hits += fmt.Sprintf("%d[0.%d] ", coord, cell.Permanences[j])
 					score++
 				}
 			}

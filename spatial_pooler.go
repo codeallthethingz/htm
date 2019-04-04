@@ -41,14 +41,12 @@ func (sp *SpatialPooler) Deactivate() {
 }
 
 // WhatIsIt returns the symbol from the highest possible match from the things learned array.
-func (sp *SpatialPooler) WhatIsIt(encoded string, connectionThreshold int, overlap int) string {
-	sp.Activate(encoded, connectionThreshold, overlap, false, "")
+func (sp *SpatialPooler) WhatIsIt(encoded string) string {
 	targetPattern := make([]bool, len(sp.Cells))
 	for i, cell := range sp.Cells {
 		targetPattern[i] = cell.Active
 	}
 	patternAndSymbol := sp.findBestMatch(targetPattern)
-	sp.Deactivate()
 	return patternAndSymbol.Symbol
 }
 
@@ -75,11 +73,9 @@ func (sp *SpatialPooler) findBestMatch(targetPattern []bool) *PatternAndSymbol {
 func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overlap int, learning bool, symbol string) {
 	for i, cell := range sp.Cells {
 		score := 0
-		hits := ""
 		for j, coord := range cell.Coordinates {
 			if encoded[coord] == "X"[0] {
 				if cell.Permanences[j] > connectionThreshold {
-					hits += fmt.Sprintf("%d[0.%d] ", coord, cell.Permanences[j])
 					score++
 				}
 			}
@@ -113,20 +109,7 @@ func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overl
 			patternAndSymbol.Pattern[i] = cell.Active
 		}
 		sp.ThingsLearned = append(sp.ThingsLearned, patternAndSymbol)
-		printPattern(patternAndSymbol)
 	}
-}
-
-func printPattern(patternAndSymbol *PatternAndSymbol) {
-	fmt.Printf("%s: ", patternAndSymbol.Symbol)
-	for _, p := range patternAndSymbol.Pattern {
-		if p {
-			fmt.Print("_")
-		} else {
-			// fmt.Print("")
-		}
-	}
-	fmt.Println()
 }
 
 // NewSpatialPooler create a new pooler.
@@ -150,7 +133,6 @@ func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int,
 		position := 0
 		for j := 0; j < inputSpaceWidth*inputSpaceHeight; j++ {
 			if rand.Int()%100 < inputSpacePotentialPoolPercent {
-
 				newCoord := inputSpaceRandom.Int()
 				spatialPooler.Cells[i].CoordLookup[newCoord] = position
 				spatialPooler.Cells[i].Coordinates = append(spatialPooler.Cells[i].Coordinates, newCoord)

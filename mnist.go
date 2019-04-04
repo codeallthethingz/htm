@@ -43,6 +43,20 @@ func readInt32(f *os.File) (int, error) {
 	return v, nil
 }
 
+var currentImageIndex = 0
+
+// GetDigit gets the next available digit of the specific type
+func GetDigit(dataSet *DataSet, required int) string {
+	digit := -1
+	var data [][]uint8
+	for digit != required {
+		data = dataSet.Data[currentImageIndex].Image
+		digit = dataSet.Data[currentImageIndex].Digit
+		currentImageIndex++
+	}
+	return createImage(data)
+}
+
 // internal: raw image data
 type imageData struct {
 	N    int
@@ -177,7 +191,7 @@ func splitToRows(data []uint8, N, H int) [][]uint8 {
 func PrintImage(image [][]uint8) {
 	for _, row := range image {
 		for _, pix := range row {
-			if pix < 50 {
+			if pix < 100 {
 				fmt.Print(" ")
 			} else {
 				fmt.Print("X")

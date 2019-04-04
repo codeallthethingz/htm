@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -11,6 +12,7 @@ import (
 // SetupRoutes defines all the routs that this server will handle.
 func SetupRoutes(router *mux.Router) {
 	router.HandleFunc("/", HomeHandler).Methods("GET")
+	router.HandleFunc("/learnings/reset", LearningsResetHandler).Methods("GET")
 	router.HandleFunc("/learnings/{image}", LearningsHandler).Methods("GET")
 	router.NotFoundHandler = http.HandlerFunc(HomeHandler)
 }
@@ -22,41 +24,38 @@ type transfer struct {
 	Threshold     int
 	Overlap       int
 	Active        bool
+	Guess         string
 }
 
-var spatialPooler *SpatialPooler
-
 var dataSet *DataSet
-var currentImageIndex = 0
+
+// LearningsResetHandler returns a json rep of spatialpooler.
+func LearningsResetHandler(w http.ResponseWriter, r *http.Request) {
+	currentImageIndex = 0
+}
 
 // LearningsHandler returns a json rep of spatialpooler.
 func LearningsHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	if paramsNotOk(w, params) {
-		return
+	if dataSet == nil {
+		dataSet, _ = ReadTestSet("./mnist")
 	}
-	if spatialPooler == nil {
-		spatialPooler = NewSpatialPooler(1000, 40, 28, 28)
-	}
-	dataSet, err := ReadTrainSet("./mnist")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	image := convertMNIST(dataSet)
+	digit, _ := strconv.Atoi(params["image"])
+	image := GetDigit(dataSet, digit)
 
 	encoded := encode(image, 28)
-	threshold := 4
-	overlap := 15
-	spatialPooler.Activate(encoded, threshold, overlap, true, "1")
+	spatialPooler.Activate(encoded, threshold, overlap, false, "#")
+	guess := spatialPooler.WhatIsIt(encoded)
+
 	json, _ := json.Marshal(&transfer{
 		SpatialPooler: spatialPooler,
 		Image:         image,
 		Encoded:       encoded,
 		Overlap:       overlap,
 		Threshold:     threshold,
+		Guess:         guess,
 	})
+	spatialPooler.Deactivate()
 	w.Write([]byte(json))
 	currentImageIndex++
 }
@@ -65,7 +64,7 @@ func createImage(image [][]uint8) string {
 	result := ""
 	for _, row := range image {
 		for _, pix := range row {
-			if pix < 50 {
+			if pix == 0 {
 				result += " "
 			} else {
 				result += "X"
@@ -73,17 +72,6 @@ func createImage(image [][]uint8) string {
 		}
 	}
 	return result
-}
-
-func convertMNIST(dataSet *DataSet) string {
-	var data [][]uint8
-	digit := 0
-	for digit != 1 {
-		data = dataSet.Data[currentImageIndex].Image
-		digit = dataSet.Data[currentImageIndex].Digit
-		currentImageIndex++
-	}
-	return createImage(data)
 }
 
 func paramsNotOk(w http.ResponseWriter, params map[string]string) bool {

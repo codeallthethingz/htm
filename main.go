@@ -2,79 +2,78 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
+	log "github.com/sirupsen/logrus"
 )
 
-var threshold = 2
-var overlap = 11
+var spatialPooler *SpatialPooler
+var threshold = 5
+var overlap = 8
 
 func main() {
-	spatialPooler := trainMNIST()
-	scoreMNIST(spatialPooler)
+	go trainMNIST()
+	// scoreMNIST(spatialPooler)
 
-	// router := mux.NewRouter()
-	// SetupRoutes(router)
-	// port := os.Getenv("PORT")
-	// if len(port) == 0 {
-	// 	port = "8000"
-	// }
-	// log.WithField("port", port).Info("http server listening")
-	// corsOpts := cors.New(cors.Options{
-	// 	AllowedOrigins: []string{"http://localhost:1234"}, //you service is available and allowed for this base url
-	// 	AllowedMethods: []string{http.MethodGet, http.MethodPost},
-	// })
-	// log.Fatal(http.ListenAndServe(":"+port, corsOpts.Handler(router)))
+	router := mux.NewRouter()
+	SetupRoutes(router)
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "8000"
+	}
+	log.WithField("port", port).Info("http server listening")
+
+	corsOpts := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:1234"}, //you service is available and allowed for this base url
+		AllowedMethods: []string{http.MethodGet, http.MethodPost},
+	})
+	log.Fatal(http.ListenAndServe(":"+port, corsOpts.Handler(router)))
 }
 
-func scoreMNIST(spatialPooler *SpatialPooler) {
-	correct := 0
-	incorrect := 0
-	dataSet, err := ReadTestSet("./mnist")
-	if err != nil {
-		panic(err)
-	}
+// func scoreMNIST(spatialPooler *SpatialPooler) {
+// 	correct := 0
+// 	incorrect := 0
+// 	dataSet, err := ReadTestSet("./mnist")
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	for imageIndex := 0; imageIndex < 500; imageIndex++ {
-		data := dataSet.Data[imageIndex].Image
-		digit := dataSet.Data[imageIndex].Digit
-		image := createImage(data)
-		encoded := encode(image, dataSet.W)
-		guess := spatialPooler.WhatIsIt(encoded, threshold, overlap)
-		// if digit == 0 {
-		// 	continue
-		// }
-		if guess == fmt.Sprintf("%d", digit) {
-			fmt.Print("--> ")
-			correct++
-		} else {
-			incorrect++
+// 	for imageIndex := 0; imageIndex < 500; imageIndex++ {
+// 		data := dataSet.Data[imageIndex].Image
+// 		digit := dataSet.Data[imageIndex].Digit
+// 		image := createImage(data)
+// 		encoded := encode(image, dataSet.W)
+// 		spatialPooler.Activate(encoded, threshold, overlap, false, "#")
+// 		guess := spatialPooler.WhatIsIt(encoded)
+// 		if guess == fmt.Sprintf("%d", digit) {
+// 			fmt.Print("--> ")
+// 			correct++
+// 		} else {
+// 			incorrect++
+// 		}
+// 		fmt.Printf("Actual: %d, Guess: %s\n", digit, guess)
+// 	}
+// 	fmt.Printf("Results, correct: %d, incorrect: %d, accuracy: %f\n", correct, incorrect, (float32(correct)/float32(incorrect+correct))*100)
+// }
+
+func trainMNIST() {
+	spatialPooler = NewSpatialPooler(4096, 40, 28, 28)
+	dataSet, _ := ReadTrainSet("./mnist")
+	for i := 0; i < 10; i++ {
+		fmt.Printf("learning %d ", i)
+		currentImageIndex = 0
+		for imageIndex := 0; imageIndex < 1000; imageIndex++ {
+			image := GetDigit(dataSet, i)
+			encoded := encode(image, dataSet.W)
+			spatialPooler.Activate(encoded, threshold, overlap, true, fmt.Sprintf("%d", i))
+			fmt.Print(".")
+			spatialPooler.Deactivate()
 		}
-		fmt.Printf("Actual: %d, Guess: %s\n", digit, guess)
+		fmt.Println()
 	}
-	fmt.Printf("Results, correct: %d, incorrect: %d, accuracy: %f\n", correct, incorrect, (float32(correct)/float32(incorrect+correct))*100)
-}
-
-func trainMNIST() *SpatialPooler {
-	if spatialPooler == nil {
-		spatialPooler = NewSpatialPooler(10000, 40, 28, 28)
-	}
-	dataSet, err := ReadTrainSet("./mnist")
-	if err != nil {
-		panic(err)
-	}
-
-	// for i := 1; i < 10; i++ {
-	for imageIndex := 0; imageIndex < 1000; imageIndex++ {
-		data := dataSet.Data[imageIndex].Image
-		digit := dataSet.Data[imageIndex].Digit
-		// if digit != 0 {
-		image := createImage(data)
-		encoded := encode(image, dataSet.W)
-		spatialPooler.Activate(encoded, threshold, overlap, true, fmt.Sprintf("%d", digit))
-		spatialPooler.Deactivate()
-		// }
-		// }
-	}
-	return spatialPooler
 
 }
 

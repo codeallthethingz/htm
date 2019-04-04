@@ -3,9 +3,9 @@ import axios from 'axios'
 
 $(() => {
 
-  const cellWidth = 3
-  const cellHeight = 3
-  const pooler = 0.5
+  const cellWidth = 10
+  const cellHeight = 10
+  const pooler = 10
 
   function renderObjectToCanvas(object, $parent) {
     let spatialPooler = object.SpatialPooler
@@ -16,14 +16,14 @@ $(() => {
     let imageHeight = spatialPooler.InputSpaceHeight
     let overlap = object.Overlap
     let $canvas = $('<canvas>')
-    let spSquare = parseInt(spatialPooler.Cells.length)  
+    let spSquare = parseInt(spatialPooler.Cells.length)
     $parent.append($canvas)
     const ctx = $canvas[0].getContext('2d')
     let canvasWidth = cellWidth * imageWidth
     let canvasHeight = cellHeight * imageHeight
     let xOffset = canvasWidth + 2 * pooler
     let yOffset = canvasHeight + 2 * pooler
-    $canvas.attr('width', Math.min(100000, (canvasWidth * 2 + 30) + (spatialPooler.Cells.length) * pooler * imageWidth - 30))
+    $canvas.attr('width', Math.min(40000, (canvasWidth * 2 + 30) + (spatialPooler.Cells.length) * pooler * imageWidth - 30))
     $canvas.attr('height', cellHeight * imageHeight + 10)
     ctx.font = cellHeight + 'px sans-serif'
     let currentXOffset = 0
@@ -53,12 +53,18 @@ $(() => {
     currentXOffset += xOffset
     currentYOffset += 10
     let g = 0;
+    ctx.font = '100px sans-serif'
+    ctx.fillText('guess: ' + object.Guess, currentXOffset, currentYOffset + 200)
+    ctx.font = cellHeight + 'px sans-serif'
     spatialPooler.Cells.forEach(cell => {
 
-      ctx.fillText('Cell ' + cell.ID + ', Score: ' + cell.Score, currentXOffset, currentYOffset)
+      ctx.fillStyle = '#000000'
+      if (pooler > 3) {
+        ctx.fillText('Cell ' + cell.ID + ', Score: ' + cell.Score, currentXOffset, currentYOffset)
+      }
       if (cell.Active) {
         ctx.fillStyle = 'rgba(0,0, 255, ' + Math.min(1, (cell.Score / 10) - 0.2) + ')'
-        ctx.fillRect(currentXOffset, currentYOffset, pooler*imageWidth, pooler*imageHeight)
+        ctx.fillRect(currentXOffset, currentYOffset, pooler * imageWidth, pooler * imageHeight)
       }
       cell.Coordinates.forEach(coord => {
         let permanence = cell.Permanences[cell.CoordLookup[coord]]
@@ -77,23 +83,43 @@ $(() => {
           ctx.fillText(permanence == 0 ? "." : permanence > threshold ? permanence : permanence, x, y - 2 + cellHeight)
         }
       })
-      currentXOffset += pooler*imageWidth
+      currentXOffset += pooler * imageWidth
       g++
       if (g % spSquare == 0) {
-        currentXOffset = xOffset+xOffset
-        currentYOffset += pooler*imageHeight
+        currentXOffset = xOffset + xOffset
+        currentYOffset += pooler * imageHeight
       }
     })
     ctx.stroke()
   }
   function learn(image) {
-    axios.get('http://localhost:3000/learnings/' + image)
+    return axios.get('http://localhost:3000/learnings/' + image + '?rand=' + Math.random())
       .then(function (response) {
         let $newDiv = $('<div>')
         $('#canvases').prepend($newDiv)
         renderObjectToCanvas(response.data, $newDiv)
       })
   }
-  $('button').on('click', (e) => { learn(e.target.id); })
+  $('.number').on('click', (e) => {
+    let k = e.target.id.substring(1)
+    learn5(k)
+  })
+  $('#reset').on('click', (e) => {
+    axios.get('http://localhost:3000/learnings/reset')
+  })
+  let i = 1
+  axios.get('http://localhost:3000/learnings/reset').then(() => {
+    learn5(i)
+  })
+  function learn5(i) {
+    learn(i).then(function () {
+      learn(i).then(function () {
+        learn(i).then(function () {
+          learn(i).then(function () {
+            learn(i)
+          })
+        })
+      })
+    })
+  }
 })
-

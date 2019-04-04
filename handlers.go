@@ -33,7 +33,7 @@ func LearningsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	image := Images[params["image"]]
-	encoded := encode(image)
+	encoded := Encode(image, 19, 0.04)
 	if spatialPooler == nil {
 		spatialPooler = NewSpatialPooler(100, 40, 19, 11)
 	}

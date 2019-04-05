@@ -12,10 +12,10 @@ type UniqueRand struct {
 }
 
 //NewUniqueRand unique rand less than N
-//If N is less or equal to 0, the scope will be unlimited
-//If N is greater than 0, it will generate (-scope, +scope)
-//If no more unique number can be generated, it will return -1 forwards
 func NewUniqueRand(scope int) *UniqueRand {
+	if scope < 2 {
+		panic("Must be initialized with a value greater than 1")
+	}
 	return &UniqueRand{
 		generated: map[int]bool{},
 		scope:     scope,
@@ -27,18 +27,13 @@ func (u *UniqueRand) Reset() {
 	u.generated = map[int]bool{}
 }
 
-// Int get a new unique random number
+// Int get a new unique random number within scope
 func (u *UniqueRand) Int() int {
-	if u.scope > 0 && len(u.generated) >= u.scope {
-		return -1
+	if len(u.generated) == u.scope {
+		panic("filled all positions in scope")
 	}
 	for {
-		var i int
-		if u.scope > 0 {
-			i = rand.Int() % u.scope
-		} else {
-			i = rand.Int()
-		}
+		i := rand.Int() % u.scope
 		if !u.generated[i] {
 			u.generated[i] = true
 			return i

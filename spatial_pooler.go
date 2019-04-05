@@ -10,35 +10,30 @@ type Cell struct {
 	Coordinates []int
 	CoordLookup map[int]int
 	Permanences []int
-
-	Score  int
-	ID     string
-	Active bool
+	Score       int
+	ID          string
+	Active      bool
 }
 
 // SpatialPooler is a set of cells connecting to an input space
 type SpatialPooler struct {
-	Cells            []*Cell
-	ActivatedCells   map[int]bool
-	InputSpaceWidth  int
-	InputSpaceHeight int
+	Cells          []*Cell
+	ActivatedCells map[int]bool
 }
 
 // Activate the cells in the spatial pooler for an encoded input
 func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overlap int, learning bool) {
 	for i, cell := range sp.Cells {
 		score := 0
-		hits := ""
 		for j, coord := range cell.Coordinates {
 			if encoded[coord] == "X"[0] {
-				if cell.Permanences[j] > connectionThreshold {
-					hits += fmt.Sprintf("%d[0.%d] ", coord, cell.Permanences[j])
+				if cell.Permanences[j] >= connectionThreshold {
 					score++
 				}
 			}
 		}
 		cell.Score = score
-		if score > overlap {
+		if score >= overlap {
 			sp.ActivatedCells[i] = true
 			cell.Active = true
 
@@ -59,15 +54,13 @@ func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overl
 }
 
 // NewSpatialPooler create a new pooler.
-func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputSpaceWidth int, inputSpaceHeight int) *SpatialPooler {
+func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputSpaceSize int) *SpatialPooler {
 	spatialPooler := &SpatialPooler{
-		Cells:            make([]*Cell, spatialPoolerSize),
-		ActivatedCells:   map[int]bool{},
-		InputSpaceWidth:  inputSpaceWidth,
-		InputSpaceHeight: inputSpaceHeight,
+		Cells:          make([]*Cell, spatialPoolerSize),
+		ActivatedCells: map[int]bool{},
 	}
-
-	inputSpaceRandom := NewUniqueRand(inputSpaceWidth * inputSpaceHeight)
+	maxConnections := int(float32(spatialPoolerSize) * (float32(inputSpacePotentialPoolPercent) / 100))
+	inputSpaceRandom := NewUniqueRand(inputSpaceSize)
 	for i := 0; i < len(spatialPooler.Cells); i++ {
 		inputSpaceRandom.Reset()
 		spatialPooler.Cells[i] = &Cell{
@@ -77,9 +70,8 @@ func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int,
 			Permanences: []int{},
 		}
 		position := 0
-		for j := 0; j < inputSpaceWidth*inputSpaceHeight; j++ {
+		for j := 0; j < inputSpaceSize && len(spatialPooler.Cells[i].Coordinates) < maxConnections; j++ {
 			if rand.Int()%100 < inputSpacePotentialPoolPercent {
-
 				newCoord := inputSpaceRandom.Int()
 				spatialPooler.Cells[i].CoordLookup[newCoord] = position
 				spatialPooler.Cells[i].Coordinates = append(spatialPooler.Cells[i].Coordinates, newCoord)
@@ -90,4 +82,23 @@ func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int,
 	}
 
 	return spatialPooler
+}
+
+// Print to the command line
+func (sp *SpatialPooler) Print(width int, height int) {
+	for i := 0; i < len(sp.Cells); i++ {
+		fmt.Printf("cell: %d", i)
+		for c := 0; c < width*height; c++ {
+			if c%width == 0 {
+				fmt.Print("\n")
+			}
+			index, ok := sp.Cells[i].CoordLookup[c]
+			if ok {
+				fmt.Print(sp.Cells[i].Permanences[index])
+			} else {
+				fmt.Print(" ")
+			}
+		}
+		fmt.Print("\n")
+	}
 }

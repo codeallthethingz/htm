@@ -16,12 +16,14 @@ func SetupRoutes(router *mux.Router) {
 }
 
 type transfer struct {
-	SpatialPooler *SpatialPooler
-	Image         string
-	Encoded       string
-	Threshold     int
-	Overlap       int
-	Active        bool
+	SpatialPooler    *SpatialPooler
+	Image            string
+	Encoded          string
+	Threshold        int
+	Overlap          int
+	Active           bool
+	InputSpaceWidth  int
+	InputSpaceHeight int
 }
 
 var spatialPooler *SpatialPooler
@@ -33,19 +35,21 @@ func LearningsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	image := Images[params["image"]]
-	encoded := encode(image)
+	encoded := Encode(image, 19, 0.04)
 	if spatialPooler == nil {
-		spatialPooler = NewSpatialPooler(100, 40, 19, 11)
+		spatialPooler = NewSpatialPooler(100, 40, 19*11)
 	}
 	threshold := 5
 	overlap := 4
 	spatialPooler.Activate(encoded, threshold, overlap, true)
 	json, _ := json.Marshal(&transfer{
-		SpatialPooler: spatialPooler,
-		Image:         image,
-		Encoded:       encoded,
-		Overlap:       overlap,
-		Threshold:     threshold,
+		SpatialPooler:    spatialPooler,
+		Image:            image,
+		Encoded:          encoded,
+		Overlap:          overlap,
+		Threshold:        threshold,
+		InputSpaceWidth:  19,
+		InputSpaceHeight: 11,
 	})
 	w.Write([]byte(json))
 }

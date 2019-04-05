@@ -18,8 +18,8 @@ $(() => {
     let spSquare = spatialPooler.Cells.length 
     $parent.append($canvas)
     const ctx = $canvas[0].getContext('2d')
-    let canvasWidth = cellWidth * spatialPooler.InputSpaceWidth
-    let canvasHeight = cellHeight * spatialPooler.InputSpaceHeight
+    let canvasWidth = cellWidth * object.InputSpaceWidth
+    let canvasHeight = cellHeight * object.InputSpaceHeight
     $canvas.attr('width', (canvasWidth + 30) * spSquare - 30)
     $canvas.attr('height', cellHeight * spatialPooler.InputSpaceHeight + 10)
     ctx.font = cellHeight + 'px sans-serif'
@@ -29,8 +29,8 @@ $(() => {
     let currentYOffset = 0
 
     for (var i = 0; i < image.length; i++) {
-      const x = (i % spatialPooler.InputSpaceWidth) * cellWidth + currentXOffset;
-      const y = parseInt(i / spatialPooler.InputSpaceWidth) * cellHeight + currentYOffset;
+      const x = (i % object.InputSpaceWidth) * cellWidth + currentXOffset;
+      const y = parseInt(i / object.InputSpaceWidth) * cellHeight + currentYOffset;
       if (image.charAt(i) === 'X') {
         ctx.fillStyle = '#0000000'
         ctx.fillRect(x, y, cellWidth, cellHeight)
@@ -38,8 +38,8 @@ $(() => {
     }
     currentXOffset += xOffset
     for (var i = 0; i < encoded.length; i++) {
-      const x = (i % spatialPooler.InputSpaceWidth) * cellWidth + currentXOffset;
-      const y = parseInt(i / spatialPooler.InputSpaceWidth) * cellHeight + currentYOffset;
+      const x = (i % object.InputSpaceWidth) * cellWidth + currentXOffset;
+      const y = parseInt(i / object.InputSpaceWidth) * cellHeight + currentYOffset;
       if (encoded.charAt(i) === 'X') {
         ctx.fillStyle = '#0000000'
         ctx.fillRect(x, y, cellWidth, cellHeight)
@@ -64,8 +64,8 @@ $(() => {
         if (permanence > threshold && encoded && encoded.charAt(coord) === 'X') {
           ctx.fillStyle = '#7777FF'
         }
-        const x = (coord % spatialPooler.InputSpaceWidth) * cellWidth + currentXOffset
-        const y = parseInt(coord / spatialPooler.InputSpaceWidth) * cellHeight + currentYOffset
+        const x = (coord % object.InputSpaceWidth) * cellWidth + currentXOffset
+        const y = parseInt(coord / object.InputSpaceWidth) * cellHeight + currentYOffset
         ctx.fillRect(x, y, cellWidth, cellHeight)
         ctx.fillStyle = '#000000'
         ctx.fillText(permanence == 0 ? "." : permanence > threshold ? permanence : permanence, x, y - 2 + cellHeight)

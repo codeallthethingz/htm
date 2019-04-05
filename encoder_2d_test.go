@@ -20,7 +20,7 @@ var testCup = "" +
 	"                   "
 
 var testZero = "" +
-	"       	XXXXXX              " +
+	"         XXXXXX              " +
 	"         XXXXXXX             " +
 	"        XXXXXXXXX            " +
 	"        XXXXXXXXXX           " +

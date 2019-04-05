@@ -21,7 +21,7 @@ $(() => {
     let canvasWidth = cellWidth * object.InputSpaceWidth
     let canvasHeight = cellHeight * object.InputSpaceHeight
     $canvas.attr('width', (canvasWidth + 30) * spSquare - 30)
-    $canvas.attr('height', cellHeight * spatialPooler.InputSpaceHeight + 10)
+    $canvas.attr('height', cellHeight * object.InputSpaceHeight + 10)
     ctx.font = cellHeight + 'px sans-serif'
     let xOffset = canvasWidth + 2 * cellWidth
     let yOffset = canvasHeight + 2 * cellHeight
@@ -48,15 +48,14 @@ $(() => {
     currentXOffset += xOffset
     currentYOffset += 10
     let g = 0;
-    spatialPooler.Cells.forEach(cell => {
-
-      ctx.fillText('Cell ' + cell.ID + ', Score: ' + cell.Score, currentXOffset, currentYOffset)
-      if (cell.Active) {
-        ctx.fillStyle = 'rgba(0,0, 255, ' + Math.min(1, (cell.Score / 10) - 0.2) + ')'
+    spatialPooler.Neurons.forEach(neuron => {
+      ctx.fillText('Neuron ' + neuron.ID + ', Score: ' + neuron.Score, currentXOffset, currentYOffset)
+      if (neuron.Active) {
+        ctx.fillStyle = 'rgba(0,0, 255, ' + Math.min(1, (neuron.Score / 10) - 0.2) + ')'
         ctx.fillRect(currentXOffset, currentYOffset, canvasWidth, canvasHeight)
       }
-      cell.Coordinates.forEach(coord => {
-        let permanence = cell.Permanences[cell.CoordLookup[coord]]
+      neuron.Coordinates.forEach(coord => {
+        let permanence = neuron.Permanences[neuron.CoordLookup[coord]]
         ctx.fillStyle = '#FFFFFF'
         if (permanence > threshold) {
           ctx.fillStyle = '#FFCCCC'
@@ -89,4 +88,3 @@ $(() => {
   }
   $('button').on('click', (e) => {learn(e.target.id);})
 })
-

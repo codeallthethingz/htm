@@ -33,7 +33,7 @@ gin run ./...
 Run the UI 
 
 ```
-cd javascript
+cd visualize
 npm install
 parcel static/index.html
 ```

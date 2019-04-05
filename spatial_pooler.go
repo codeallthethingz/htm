@@ -15,9 +15,9 @@ type SpatialPooler struct {
 func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overlap int, learning bool) {
 	for i, neuron := range sp.Neurons {
 		score := 0
-		for j, coord := range neuron.Coordinates {
+		for _, coord := range neuron.Coordinates {
 			if encoded[coord] == "X"[0] {
-				if neuron.Permanences[j] >= connectionThreshold {
+				if neuron.GetPermanence(coord) >= connectionThreshold {
 					score++
 				}
 			}
@@ -29,13 +29,11 @@ func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overl
 
 			// learn
 			if learning {
-				for j, coord := range neuron.Coordinates {
+				for _, coord := range neuron.Coordinates {
 					if encoded[coord] == "X"[0] {
-						if neuron.Permanences[j] < 9 {
-							neuron.Permanences[j]++
-						}
-					} else if neuron.Permanences[j] > 0 {
-						neuron.Permanences[j]--
+						neuron.IncPermanence(coord)
+					} else {
+						neuron.DecPermanence(coord)
 					}
 				}
 			}
@@ -82,9 +80,8 @@ func (sp *SpatialPooler) Print(width int, height int) {
 			if c%width == 0 {
 				fmt.Print("\n")
 			}
-			index, ok := sp.Neurons[i].CoordLookup[c]
-			if ok {
-				fmt.Print(sp.Neurons[i].Permanences[index])
+			if sp.Neurons[i].IsConnected(c) {
+				fmt.Print(sp.Neurons[i].Permanences[sp.Neurons[i].CoordLookup[c]])
 			} else {
 				fmt.Print(" ")
 			}

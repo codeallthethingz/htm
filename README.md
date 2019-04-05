@@ -33,9 +33,9 @@ gin run ./...
 Run the UI 
 
 ```
-cd static
+cd javascript
 npm install
-parcel index.html
+parcel static/index.html
 ```
 
 Go to http://localhost:1234

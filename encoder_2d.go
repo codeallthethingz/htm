@@ -5,10 +5,10 @@ func Encode(obj string, width int, sparsity float32) string {
 	onBits, offBits := CountBits(obj)
 	totalBits := offBits + onBits
 	target := int(float32(totalBits) * sparsity)
-	return turnOffBits(obj, width, onBits, target)
+	return turnOffBitsLinear(obj, width, onBits, target)
 }
 
-func turnOffBits(obj string, width int, currentlyOn int, targetOn int) string {
+func turnOffBitsLinear(obj string, width int, currentlyOn int, targetOn int) string {
 	newObj := ""
 	for c := range obj {
 		if currentlyOn > targetOn && c > 0 && obj[c-1] == "X"[0] && obj[c] == "X"[0] && c < len(obj) && obj[c+1] == "X"[0] {

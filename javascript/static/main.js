@@ -15,7 +15,7 @@ $(() => {
     let threshold = object.Threshold
     let overlap = object.Overlap
     let $canvas = $('<canvas>')
-    let spSquare = spatialPooler.Cells.length 
+    let spSquare = spatialPooler.Neurons.length 
     $parent.append($canvas)
     const ctx = $canvas[0].getContext('2d')
     let canvasWidth = cellWidth * object.InputSpaceWidth

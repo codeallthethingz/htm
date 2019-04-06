@@ -6,17 +6,15 @@ import (
 
 // SpatialPooler is a set of neurons connecting to an input space
 type SpatialPooler struct {
-	Neurons          []*Neuron
-	ActivatedNeurons map[int]bool
-	InputNeurons     []*Neuron // handy reference list.
+	Neurons      []*Neuron
+	InputNeurons []*Neuron //  reference list so you don't have to pass in the input everytime.
 }
 
 // NewSpatialPooler create a new pooler.
 func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputNeurons []*Neuron) *SpatialPooler {
 	spatialPooler := &SpatialPooler{
-		Neurons:          make([]*Neuron, spatialPoolerSize),
-		ActivatedNeurons: map[int]bool{},
-		InputNeurons:     inputNeurons,
+		Neurons:      make([]*Neuron, spatialPoolerSize),
+		InputNeurons: inputNeurons,
 	}
 	for i := 0; i < len(spatialPooler.Neurons); i++ {
 		spatialPooler.Neurons[i] = NewNeuron(fmt.Sprintf("c%d", i), inputSpacePotentialPoolPercent, inputNeurons)
@@ -25,8 +23,8 @@ func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int,
 }
 
 // Activate the neurons in the spatial pooler for an enoded input
-func (sp *SpatialPooler) Activate(connectionThreshold int, overlap int, learning bool) {
-	for i, neuron := range sp.Neurons {
+func (sp *SpatialPooler) Activate(connectionThreshold int, overlapThreshold int, learning bool) {
+	for _, neuron := range sp.Neurons {
 		score := 0
 		for _, dendrite := range neuron.ProximalInputs {
 			for _, inputNeuron := range sp.InputNeurons {
@@ -38,8 +36,7 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlap int, learning
 			}
 		}
 		neuron.Score = score
-		if score >= overlap {
-			sp.ActivatedNeurons[i] = true
+		if score >= overlapThreshold {
 			neuron.Active = true
 
 			// learn

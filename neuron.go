@@ -11,6 +11,7 @@ type Neuron struct {
 	Score               int         `json:"score"`
 	ID                  string      `json:"id"`
 	Active              bool        `json:"active"`
+	Predictive          bool        `json:"predictive"`
 }
 
 // NewNeuron creates an initialized neuron

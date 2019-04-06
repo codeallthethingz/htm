@@ -6,6 +6,14 @@ type Dendrite struct {
 	Permanence      int
 }
 
+// NewDendrite create a new dendrite
+func NewDendrite(inputCoordinate int, permanence int) *Dendrite {
+	return &Dendrite{
+		InputCoordinate: inputCoordinate,
+		Permanence:      permanence,
+	}
+}
+
 // IncPermanence increases the permanance value for this connection
 func (d *Dendrite) IncPermanence() {
 	if d.Permanence < 9 {

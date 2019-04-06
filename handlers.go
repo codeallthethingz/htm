@@ -37,7 +37,7 @@ func LearningsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	image := Images[params["image"]]
 	if inputNeurons == nil {
-		inputNeurons = MakeInputNeurons(19 * 11)
+		inputNeurons = MakeInputNeurons(19, 11)
 	}
 	Encode(image, inputNeurons, 0.04, 19)
 	if spatialPooler == nil {

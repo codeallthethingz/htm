@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // Encode turn a 2d image into a a set of turned on bits at a specific sparsity
 func Encode(obj string, inputNeurons []*Neuron, sparsity float32, width int) {
 	onBits, offBits := CountBits(obj)
@@ -59,10 +61,12 @@ func CountBits(obj string) (int, int) {
 }
 
 // MakeInputNeurons create an empty list of neurons for use as an input field.
-func MakeInputNeurons(len int) []*Neuron {
-	neurons := make([]*Neuron, len)
-	for i := 0; i < len; i++ {
-		neurons[i] = &Neuron{}
+func MakeInputNeurons(width int, height int) []*Neuron {
+	neurons := make([]*Neuron, width*height)
+	for i := 0; i < len(neurons); i++ {
+		neurons[i] = &Neuron{
+			ID: fmt.Sprintf("(%d,%d)", i%width, int(float32(i)/float32(width))),
+		}
 	}
 	return neurons
 }

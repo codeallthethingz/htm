@@ -42,7 +42,7 @@ var testZero = "" +
 	"           XXXXXXX           "
 
 func TestEncodeCup(t *testing.T) {
-	neurons := MakeInputNeurons(19 * 11)
+	neurons := MakeInputNeurons(19, 11)
 	Encode(testCup, neurons, 0.04, 19)
 	onBits, offBits := CountBits(testCup)
 	onBitsEncoded := count(neurons)
@@ -54,7 +54,7 @@ func TestEncodeZero(t *testing.T) {
 	width := 29
 	height := 20
 
-	neurons := MakeInputNeurons(width * height)
+	neurons := MakeInputNeurons(width, height)
 	Encode(testZero, neurons, 0.04, width)
 	onBits, offBits := CountBits(testZero)
 	onBitsEncoded := count(neurons)

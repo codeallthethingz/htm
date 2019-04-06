@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 )
 
 // SpatialPooler is a set of neurons connecting to an input space
@@ -47,26 +46,8 @@ func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int,
 		Neurons:          make([]*Neuron, spatialPoolerSize),
 		ActivatedNeurons: map[int]bool{},
 	}
-	maxConnections := int(float32(spatialPoolerSize) * (float32(inputSpacePotentialPoolPercent) / 100))
-	inputSpaceRandom := NewUniqueRand(inputSpaceSize)
 	for i := 0; i < len(spatialPooler.Neurons); i++ {
-		inputSpaceRandom.Reset()
-		spatialPooler.Neurons[i] = &Neuron{
-			ID:          fmt.Sprintf("c%d", i),
-			CoordLookup: map[int]int{},
-			Coordinates: []int{},
-			Permanences: []int{},
-		}
-		position := 0
-		for j := 0; j < inputSpaceSize && len(spatialPooler.Neurons[i].Coordinates) < maxConnections; j++ {
-			if rand.Int()%100 < inputSpacePotentialPoolPercent {
-				newCoord := inputSpaceRandom.Int()
-				spatialPooler.Neurons[i].CoordLookup[newCoord] = position
-				spatialPooler.Neurons[i].Coordinates = append(spatialPooler.Neurons[i].Coordinates, newCoord)
-				spatialPooler.Neurons[i].Permanences = append(spatialPooler.Neurons[i].Permanences, rand.Int()%10)
-				position++
-			}
-		}
+		spatialPooler.Neurons[i] = NewNeuron(fmt.Sprintf("c%d", i), inputSpacePotentialPoolPercent, inputSpaceSize)
 	}
 
 	return spatialPooler

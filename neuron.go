@@ -1,5 +1,7 @@
 package main
 
+import "math/rand"
+
 // Neuron is the connection from a spatial pooler neuron to many inputs
 type Neuron struct {
 	Coordinates []int
@@ -8,6 +10,29 @@ type Neuron struct {
 	Score       int
 	ID          string
 	Active      bool
+}
+
+// NewNeuron creates an initialized neuron
+func NewNeuron(id string, inputSpacePotentialPoolPercent int, inputSpaceSize int) *Neuron {
+	n := &Neuron{
+		ID:          id,
+		CoordLookup: map[int]int{},
+		Coordinates: []int{},
+		Permanences: []int{},
+	}
+	maxConnections := int(float32(inputSpaceSize) * (float32(inputSpacePotentialPoolPercent) / 100))
+	position := 0
+	inputSpaceRandom := NewUniqueRand(inputSpaceSize)
+	for j := 0; j < inputSpaceSize && len(n.Coordinates) < maxConnections; j++ {
+		if rand.Int()%100 < inputSpacePotentialPoolPercent {
+			newCoord := inputSpaceRandom.Int()
+			n.CoordLookup[newCoord] = position
+			n.Coordinates = append(n.Coordinates, newCoord)
+			n.Permanences = append(n.Permanences, rand.Int()%10)
+			position++
+		}
+	}
+	return n
 }
 
 // IsConnected is this neuron connected to the coordinate input

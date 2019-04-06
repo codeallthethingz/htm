@@ -8,16 +8,32 @@ import (
 type SpatialPooler struct {
 	Neurons          []*Neuron
 	ActivatedNeurons map[int]bool
+	InputSpace       []*Neuron // handy reference list.
 }
 
-// Activate the neurons in the spatial pooler for an encoded input
-func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overlap int, learning bool) {
+// NewSpatialPooler create a new pooler.
+func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputSpace []*Neuron) *SpatialPooler {
+	spatialPooler := &SpatialPooler{
+		Neurons:          make([]*Neuron, spatialPoolerSize),
+		ActivatedNeurons: map[int]bool{},
+		InputSpace:       inputSpace,
+	}
+	for i := 0; i < len(spatialPooler.Neurons); i++ {
+		spatialPooler.Neurons[i] = NewNeuron(fmt.Sprintf("c%d", i), inputSpacePotentialPoolPercent, inputSpace)
+	}
+	return spatialPooler
+}
+
+// Activate the neurons in the spatial pooler for an enoded input
+func (sp *SpatialPooler) Activate(connectionThreshold int, overlap int, learning bool) {
 	for i, neuron := range sp.Neurons {
 		score := 0
 		for _, dendrite := range neuron.ProximalInputs {
-			if encoded[dendrite.InputCoordinate] == "X"[0] {
-				if dendrite.Permanence >= connectionThreshold {
-					score++
+			for _, encode := range sp.InputSpace {
+				if encode.Active && encode == dendrite.InputCoordinate {
+					if dendrite.Permanence >= connectionThreshold {
+						score++
+					}
 				}
 			}
 		}
@@ -29,10 +45,14 @@ func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overl
 			// learn
 			if learning {
 				for _, dendrite := range neuron.ProximalInputs {
-					if encoded[dendrite.InputCoordinate] == "X"[0] {
-						dendrite.IncPermanence()
-					} else {
-						dendrite.DecPermanence()
+					for _, encode := range sp.InputSpace {
+						if encode == dendrite.InputCoordinate {
+							if encode.Active {
+								dendrite.IncPermanence()
+							} else {
+								dendrite.DecPermanence()
+							}
+						}
 					}
 				}
 			}
@@ -40,28 +60,16 @@ func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overl
 	}
 }
 
-// NewSpatialPooler create a new pooler.
-func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputSpaceSize int) *SpatialPooler {
-	spatialPooler := &SpatialPooler{
-		Neurons:          make([]*Neuron, spatialPoolerSize),
-		ActivatedNeurons: map[int]bool{},
-	}
-	for i := 0; i < len(spatialPooler.Neurons); i++ {
-		spatialPooler.Neurons[i] = NewNeuron(fmt.Sprintf("c%d", i), inputSpacePotentialPoolPercent, inputSpaceSize)
-	}
-	return spatialPooler
-}
-
 // Print to the command line
 func (sp *SpatialPooler) Print(width int, height int) {
 	for i := 0; i < len(sp.Neurons); i++ {
 		fmt.Printf("neuron: %d", i)
-		for c := 0; c < width*height; c++ {
+		for c, neuron := range sp.InputSpace {
 			if c%width == 0 {
 				fmt.Print("\n")
 			}
-			if sp.Neurons[i].IsConnected(c) {
-				fmt.Print(sp.Neurons[i].GetDendrite(c).Permanence)
+			if sp.Neurons[i].IsConnected(neuron) {
+				fmt.Print(sp.Neurons[i].GetDendrite(neuron).Permanence)
 			} else {
 				fmt.Print(" ")
 			}

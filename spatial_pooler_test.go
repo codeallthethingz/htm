@@ -9,7 +9,10 @@ import (
 )
 
 func TestNewSpatialPooler(t *testing.T) {
-	spatialPooler := NewSpatialPooler(4, 100, 4)
+	inputNeurons := []*Neuron{
+		&Neuron{}, &Neuron{}, &Neuron{}, &Neuron{},
+	}
+	spatialPooler := NewSpatialPooler(4, 100, inputNeurons)
 	require.Equal(t, 4, len(spatialPooler.Neurons))
 	for i := 0; i < 4; i++ {
 		require.Equal(t, 4, len(spatialPooler.Neurons[0].ProximalInputs))
@@ -17,8 +20,11 @@ func TestNewSpatialPooler(t *testing.T) {
 }
 
 func TestNewSpatialPoolerConnectionPool(t *testing.T) {
+	inputNeurons := []*Neuron{
+		&Neuron{}, &Neuron{}, &Neuron{}, &Neuron{},
+	}
 	rand.Seed(0)
-	spatialPooler := NewSpatialPooler(4, 50, 4)
+	spatialPooler := NewSpatialPooler(4, 50, inputNeurons)
 	require.Equal(t, 4, len(spatialPooler.Neurons))
 	for i := 0; i < 4; i++ {
 		require.Equal(t, 2, len(spatialPooler.Neurons[0].ProximalInputs))
@@ -26,22 +32,29 @@ func TestNewSpatialPoolerConnectionPool(t *testing.T) {
 }
 
 func TestActivate(t *testing.T) {
-	spatialPooler := NewSpatialPooler(4, 100, 4)
-	spatialPooler.Activate("XXXX", 0, 2, false)
+	inputNeurons := []*Neuron{
+		&Neuron{Active: true}, &Neuron{Active: true}, &Neuron{Active: true}, &Neuron{Active: true},
+	}
+	spatialPooler := NewSpatialPooler(4, 100, inputNeurons)
+	spatialPooler.Activate(0, 2, false)
 	for i := 0; i < 4; i++ {
 		require.True(t, spatialPooler.Neurons[i].Active)
 	}
 }
+
 func TestLearn(t *testing.T) {
+	inputNeurons := []*Neuron{
+		&Neuron{Active: true}, &Neuron{Active: true}, &Neuron{Active: false}, &Neuron{Active: false},
+	}
 	rand.Seed(0)
-	spatialPooler := NewSpatialPooler(4, 100, 4)
-	initial1 := spatialPooler.Neurons[3].GetDendrite(1).Permanence
-	initial2 := spatialPooler.Neurons[3].GetDendrite(3).Permanence
-	spatialPooler.Print(4, 1)
-	spatialPooler.Activate("XX  ", 4, 2, true)
-	spatialPooler.Print(4, 1)
-	after1 := spatialPooler.Neurons[3].GetDendrite(1).Permanence
-	after2 := spatialPooler.Neurons[3].GetDendrite(3).Permanence
+	spatialPooler := NewSpatialPooler(4, 100, inputNeurons)
+	initial1 := spatialPooler.Neurons[3].GetDendrite(inputNeurons[1]).Permanence
+	initial2 := spatialPooler.Neurons[3].GetDendrite(inputNeurons[3]).Permanence
+	spatialPooler.Print(2, 2)
+	spatialPooler.Activate(4, 2, true)
+	spatialPooler.Print(2, 2)
+	after1 := spatialPooler.Neurons[3].GetDendrite(inputNeurons[1]).Permanence
+	after2 := spatialPooler.Neurons[3].GetDendrite(inputNeurons[3]).Permanence
 	fmt.Println(initial2, after2)
 	require.True(t, after1 > initial1)
 	require.True(t, after2 < initial2)

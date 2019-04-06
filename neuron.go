@@ -26,7 +26,7 @@ func NewNeuron(id string, inputSpacePotentialPoolPercent int, inputSpaceSize int
 			newCoord := inputSpaceRandom.Int()
 			permanence := rand.Int() % 10
 			n.ProximalInputs = append(n.ProximalInputs, &Dendrite{
-				inputCoordinate: newCoord,
+				InputCoordinate: newCoord,
 				Permanence:      permanence,
 			})
 			n.CoordLookup[newCoord] = position
@@ -42,20 +42,8 @@ func (n *Neuron) IsConnected(coord int) bool {
 	return ok
 }
 
-// GetPermanence get the permanance value for this connection
-func (n *Neuron) GetPermanence(coord int) int {
+// GetDendrite get the permanance value for this connection
+func (n *Neuron) GetDendrite(coord int) *Dendrite {
 	index, _ := n.CoordLookup[coord]
-	return n.ProximalInputs[index].Permanence
-}
-
-// IncPermanence increases the permanance value for this connection
-func (n *Neuron) IncPermanence(coord int) {
-	index, _ := n.CoordLookup[coord]
-	n.ProximalInputs[index].IncPermanence()
-}
-
-// DecPermanence decrease the permanance value for this connection
-func (n *Neuron) DecPermanence(coord int) {
-	index, _ := n.CoordLookup[coord]
-	n.ProximalInputs[index].DecPermanence()
+	return n.ProximalInputs[index]
 }

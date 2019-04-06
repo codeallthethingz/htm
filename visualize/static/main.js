@@ -54,8 +54,9 @@ $(() => {
         ctx.fillStyle = 'rgba(0,0, 255, ' + Math.min(1, (neuron.Score / 10) - 0.2) + ')'
         ctx.fillRect(currentXOffset, currentYOffset, canvasWidth, canvasHeight)
       }
-      neuron.Coordinates.forEach(coord => {
-        let permanence = neuron.Permanences[neuron.CoordLookup[coord]]
+      neuron.ProximalInputs.forEach(dendrite => {
+        let permanence = dendrite.Permanence
+        let coord = dendrite.InputCoordinate
         ctx.fillStyle = '#FFFFFF'
         if (permanence > threshold) {
           ctx.fillStyle = '#FFCCCC'

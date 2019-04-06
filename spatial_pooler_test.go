@@ -35,13 +35,13 @@ func TestActivate(t *testing.T) {
 func TestLearn(t *testing.T) {
 	rand.Seed(0)
 	spatialPooler := NewSpatialPooler(4, 100, 4)
-	initial1 := spatialPooler.Neurons[3].GetPermanence(1)
-	initial2 := spatialPooler.Neurons[3].GetPermanence(3)
+	initial1 := spatialPooler.Neurons[3].GetDendrite(1).Permanence
+	initial2 := spatialPooler.Neurons[3].GetDendrite(3).Permanence
 	spatialPooler.Print(4, 1)
 	spatialPooler.Activate("XX  ", 4, 2, true)
 	spatialPooler.Print(4, 1)
-	after1 := spatialPooler.Neurons[3].GetPermanence(1)
-	after2 := spatialPooler.Neurons[3].GetPermanence(3)
+	after1 := spatialPooler.Neurons[3].GetDendrite(1).Permanence
+	after2 := spatialPooler.Neurons[3].GetDendrite(3).Permanence
 	fmt.Println(initial2, after2)
 	require.True(t, after1 > initial1)
 	require.True(t, after2 < initial2)

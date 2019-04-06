@@ -2,7 +2,7 @@ package main
 
 // Dendrite is a connection to some axon somewhere.
 type Dendrite struct {
-	inputCoordinate int
+	InputCoordinate int
 	Permanence      int
 }
 

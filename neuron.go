@@ -32,13 +32,13 @@ func NewNeuron(id string, inputSpacePotentialPoolPercent int, inputSpaceSize int
 }
 
 // IsConnected is this neuron connected to the coordinate input
-func (n *Neuron) IsConnected(coord int) bool {
-	_, ok := n.proximalInputLookup[coord]
+func (n *Neuron) IsConnected(inputCoordinate int) bool {
+	_, ok := n.proximalInputLookup[inputCoordinate]
 	return ok
 }
 
-// GetDendrite get the permanance value for this connection
-func (n *Neuron) GetDendrite(coord int) *Dendrite {
-	index, _ := n.proximalInputLookup[coord]
+// GetDendrite get a dendrite connected to this coordinate
+func (n *Neuron) GetDendrite(inputCoordinate int) *Dendrite {
+	index, _ := n.proximalInputLookup[inputCoordinate]
 	return n.ProximalInputs[index]
 }

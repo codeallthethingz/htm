@@ -2,14 +2,14 @@ package main
 
 // Dendrite is a connection to some axon somewhere.
 type Dendrite struct {
-	InputCoordinate *Neuron
+	ConnectedNeuron *Neuron
 	Permanence      int
 }
 
 // NewDendrite create a new dendrite
-func NewDendrite(inputCoordinate *Neuron, permanence int) *Dendrite {
+func NewDendrite(connectedNeuron *Neuron, permanence int) *Dendrite {
 	return &Dendrite{
-		InputCoordinate: inputCoordinate,
+		ConnectedNeuron: connectedNeuron,
 		Permanence:      permanence,
 	}
 }

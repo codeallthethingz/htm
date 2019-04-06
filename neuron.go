@@ -15,20 +15,19 @@ type Neuron struct {
 }
 
 // NewNeuron creates an initialized neuron
-func NewNeuron(id string, inputSpacePotentialPoolPercent int, inputSpace []*Neuron) *Neuron {
-	connectionPoolSize := int(float32(len(inputSpace)) * (float32(inputSpacePotentialPoolPercent) / 100))
+func NewNeuron(id string, inputSpacePotentialPoolPercent int, inputNeurons []*Neuron) *Neuron {
+	connectionPoolSize := int(float32(len(inputNeurons)) * (float32(inputSpacePotentialPoolPercent) / 100))
 	n := &Neuron{
 		ID:                  id,
 		proximalInputLookup: map[*Neuron]int{},
 		ProximalInputs:      make([]*Dendrite, connectionPoolSize),
 	}
-	inputSpaceRandom := NewUniqueRand(len(inputSpace))
+	inputNeuronsRandom := NewUniqueRand(len(inputNeurons))
 	for j := range n.ProximalInputs {
-
-		inputCoordinate := inputSpaceRandom.Int()
+		inputNeuron := inputNeurons[inputNeuronsRandom.Int()]
 		permanence := rand.Int() % 10
-		n.ProximalInputs[j] = NewDendrite(inputSpace[inputCoordinate], permanence)
-		n.proximalInputLookup[inputSpace[inputCoordinate]] = j
+		n.ProximalInputs[j] = NewDendrite(inputNeuron, permanence)
+		n.proximalInputLookup[inputNeuron] = j
 	}
 	return n
 }

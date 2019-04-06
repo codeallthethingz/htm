@@ -30,7 +30,7 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlap int, learning
 		score := 0
 		for _, dendrite := range neuron.ProximalInputs {
 			for _, encode := range sp.InputSpace {
-				if encode.Active && encode == dendrite.InputCoordinate {
+				if encode.Active && encode == dendrite.ConnectedNeuron {
 					if dendrite.Permanence >= connectionThreshold {
 						score++
 					}
@@ -46,7 +46,7 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlap int, learning
 			if learning {
 				for _, dendrite := range neuron.ProximalInputs {
 					for _, encode := range sp.InputSpace {
-						if encode == dendrite.InputCoordinate {
+						if encode == dendrite.ConnectedNeuron {
 							if encode.Active {
 								dendrite.IncPermanence()
 							} else {

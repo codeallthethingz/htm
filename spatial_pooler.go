@@ -14,9 +14,9 @@ type SpatialPooler struct {
 func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overlap int, learning bool) {
 	for i, neuron := range sp.Neurons {
 		score := 0
-		for _, coord := range neuron.Coordinates {
-			if encoded[coord] == "X"[0] {
-				if neuron.GetPermanence(coord) >= connectionThreshold {
+		for _, dendrite := range neuron.ProximalInputs {
+			if encoded[dendrite.inputCoordinate] == "X"[0] {
+				if dendrite.Permanence >= connectionThreshold {
 					score++
 				}
 			}
@@ -28,11 +28,11 @@ func (sp *SpatialPooler) Activate(encoded string, connectionThreshold int, overl
 
 			// learn
 			if learning {
-				for _, coord := range neuron.Coordinates {
-					if encoded[coord] == "X"[0] {
-						neuron.IncPermanence(coord)
+				for _, dendrite := range neuron.ProximalInputs {
+					if encoded[dendrite.inputCoordinate] == "X"[0] {
+						dendrite.IncPermanence()
 					} else {
-						neuron.DecPermanence(coord)
+						dendrite.DecPermanence()
 					}
 				}
 			}
@@ -49,7 +49,6 @@ func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int,
 	for i := 0; i < len(spatialPooler.Neurons); i++ {
 		spatialPooler.Neurons[i] = NewNeuron(fmt.Sprintf("c%d", i), inputSpacePotentialPoolPercent, inputSpaceSize)
 	}
-
 	return spatialPooler
 }
 
@@ -62,7 +61,7 @@ func (sp *SpatialPooler) Print(width int, height int) {
 				fmt.Print("\n")
 			}
 			if sp.Neurons[i].IsConnected(c) {
-				fmt.Print(sp.Neurons[i].Permanences[sp.Neurons[i].CoordLookup[c]])
+				fmt.Print(sp.Neurons[i].GetPermanence(sp.Neurons[i].CoordLookup[c]))
 			} else {
 				fmt.Print(" ")
 			}

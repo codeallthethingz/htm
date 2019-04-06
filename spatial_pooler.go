@@ -6,15 +6,15 @@ import (
 
 // SpatialPooler is a set of neurons connecting to an input space
 type SpatialPooler struct {
-	Neurons      []*Neuron
-	InputNeurons []*Neuron //  reference list so you don't have to pass in the input everytime.
+	Neurons      []*Neuron `json:"neurons"`
+	inputNeurons []*Neuron //  reference list so you don't have to pass in the input everytime.
 }
 
 // NewSpatialPooler create a new pooler.
 func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputNeurons []*Neuron) *SpatialPooler {
 	spatialPooler := &SpatialPooler{
 		Neurons:      make([]*Neuron, spatialPoolerSize),
-		InputNeurons: inputNeurons,
+		inputNeurons: inputNeurons,
 	}
 	for i := 0; i < len(spatialPooler.Neurons); i++ {
 		spatialPooler.Neurons[i] = NewNeuron(fmt.Sprintf("c%d", i), inputSpacePotentialPoolPercent, inputNeurons)
@@ -27,7 +27,7 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlapThreshold int,
 	for _, neuron := range sp.Neurons {
 		score := 0
 		for _, dendrite := range neuron.ProximalInputs {
-			for _, inputNeuron := range sp.InputNeurons {
+			for _, inputNeuron := range sp.inputNeurons {
 				if inputNeuron.Active && inputNeuron == dendrite.ConnectedNeuron {
 					if dendrite.Permanence >= connectionThreshold { // TODO this line could be 2 lines up speeding up things
 						score++
@@ -42,7 +42,7 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlapThreshold int,
 			// learn
 			if learning {
 				for _, dendrite := range neuron.ProximalInputs {
-					for _, inputNeuron := range sp.InputNeurons {
+					for _, inputNeuron := range sp.inputNeurons {
 						if inputNeuron == dendrite.ConnectedNeuron {
 							if inputNeuron.Active {
 								dendrite.IncPermanence()
@@ -61,7 +61,7 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlapThreshold int,
 func (sp *SpatialPooler) Print(width int, height int) {
 	for i := 0; i < len(sp.Neurons); i++ {
 		fmt.Printf("neuron: %d", i)
-		for c, inputNeuron := range sp.InputNeurons {
+		for c, inputNeuron := range sp.inputNeurons {
 			if c%width == 0 {
 				fmt.Print("\n")
 			}

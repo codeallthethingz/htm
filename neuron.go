@@ -6,12 +6,11 @@ import (
 
 // Neuron is the connection from a spatial pooler neuron to many inputs
 type Neuron struct {
-	ProximalInputs      []*Dendrite
 	proximalInputLookup map[*Neuron]int
-	DistalInputs        []*Dendrite
-	Score               int
-	ID                  string
-	Active              bool
+	ProximalInputs      []*Dendrite `json:"proximalInputs"`
+	Score               int         `json:"score"`
+	ID                  string      `json:"id"`
+	Active              bool        `json:"active"`
 }
 
 // NewNeuron creates an initialized neuron

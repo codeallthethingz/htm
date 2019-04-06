@@ -16,14 +16,14 @@ func SetupRoutes(router *mux.Router) {
 }
 
 type transfer struct {
-	SpatialPooler    *SpatialPooler
-	Image            string
-	Encoded          string
-	Threshold        int
-	Overlap          int
-	Active           bool
-	InputSpaceWidth  int
-	InputSpaceHeight int
+	SpatialPooler    *SpatialPooler `json:"spatialPooler"`
+	Image            string         `json:"image"`
+	Encoded          string         `json:"encoded"`
+	Threshold        int            `json:"theshold"`
+	Overlap          int            `json:"overlap"`
+	Active           bool           `json:"active"`
+	InputSpaceWidth  int            `json:"inputSpaceWidth"`
+	InputSpaceHeight int            `json:"inputSpaceHeight"`
 }
 
 var spatialPooler *SpatialPooler

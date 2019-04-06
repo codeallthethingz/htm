@@ -8,18 +8,18 @@ import (
 type SpatialPooler struct {
 	Neurons          []*Neuron
 	ActivatedNeurons map[int]bool
-	InputSpace       []*Neuron // handy reference list.
+	InputNeurons     []*Neuron // handy reference list.
 }
 
 // NewSpatialPooler create a new pooler.
-func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputSpace []*Neuron) *SpatialPooler {
+func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputNeurons []*Neuron) *SpatialPooler {
 	spatialPooler := &SpatialPooler{
 		Neurons:          make([]*Neuron, spatialPoolerSize),
 		ActivatedNeurons: map[int]bool{},
-		InputSpace:       inputSpace,
+		InputNeurons:     inputNeurons,
 	}
 	for i := 0; i < len(spatialPooler.Neurons); i++ {
-		spatialPooler.Neurons[i] = NewNeuron(fmt.Sprintf("c%d", i), inputSpacePotentialPoolPercent, inputSpace)
+		spatialPooler.Neurons[i] = NewNeuron(fmt.Sprintf("c%d", i), inputSpacePotentialPoolPercent, inputNeurons)
 	}
 	return spatialPooler
 }
@@ -29,9 +29,9 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlap int, learning
 	for i, neuron := range sp.Neurons {
 		score := 0
 		for _, dendrite := range neuron.ProximalInputs {
-			for _, encode := range sp.InputSpace {
-				if encode.Active && encode == dendrite.ConnectedNeuron {
-					if dendrite.Permanence >= connectionThreshold {
+			for _, inputNeuron := range sp.InputNeurons {
+				if inputNeuron.Active && inputNeuron == dendrite.ConnectedNeuron {
+					if dendrite.Permanence >= connectionThreshold { // TODO this line could be 2 lines up speeding up things
 						score++
 					}
 				}
@@ -45,9 +45,9 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlap int, learning
 			// learn
 			if learning {
 				for _, dendrite := range neuron.ProximalInputs {
-					for _, encode := range sp.InputSpace {
-						if encode == dendrite.ConnectedNeuron {
-							if encode.Active {
+					for _, inputNeuron := range sp.InputNeurons {
+						if inputNeuron == dendrite.ConnectedNeuron {
+							if inputNeuron.Active {
 								dendrite.IncPermanence()
 							} else {
 								dendrite.DecPermanence()
@@ -64,12 +64,12 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlap int, learning
 func (sp *SpatialPooler) Print(width int, height int) {
 	for i := 0; i < len(sp.Neurons); i++ {
 		fmt.Printf("neuron: %d", i)
-		for c, neuron := range sp.InputSpace {
+		for c, inputNeuron := range sp.InputNeurons {
 			if c%width == 0 {
 				fmt.Print("\n")
 			}
-			if sp.Neurons[i].IsConnected(neuron) {
-				fmt.Print(sp.Neurons[i].GetDendrite(neuron).Permanence)
+			if sp.Neurons[i].IsConnected(inputNeuron) {
+				fmt.Print(sp.Neurons[i].GetDendrite(inputNeuron).Permanence)
 			} else {
 				fmt.Print(" ")
 			}

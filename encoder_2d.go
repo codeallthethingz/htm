@@ -1,11 +1,17 @@
 package main
 
+import "fmt"
+
 // Encode turn a 2d image into a a set of turned on bits at a specific sparsity
-func Encode(obj string, width int, sparsity float32) string {
+func Encode(obj string, inputNeurons []*Neuron, sparsity float32, width int) {
 	onBits, offBits := CountBits(obj)
 	totalBits := offBits + onBits
 	target := int(float32(totalBits) * sparsity)
-	return turnOffBitsLinear(obj, width, onBits, target)
+	encoded := turnOffBitsLinear(obj, width, onBits, target)
+
+	for c := range encoded {
+		inputNeurons[c].Active = encoded[c] == "X"[0]
+	}
 }
 
 func turnOffBitsLinear(obj string, width int, currentlyOn int, targetOn int) string {
@@ -52,4 +58,28 @@ func CountBits(obj string) (int, int) {
 		}
 	}
 	return onBits, offBits
+}
+
+// MakeInputNeurons create an empty list of neurons for use as an input field.
+func MakeInputNeurons(width int, height int) []*Neuron {
+	neurons := make([]*Neuron, width*height)
+	for i := 0; i < len(neurons); i++ {
+		neurons[i] = &Neuron{
+			ID: fmt.Sprintf("(%d,%d)", i%width, int(float32(i)/float32(width))),
+		}
+	}
+	return neurons
+}
+
+// InputNeuronsToString convert to a string
+func InputNeuronsToString(neurons []*Neuron) string {
+	result := ""
+	for _, n := range neurons {
+		if n.Active {
+			result += "X"
+		} else {
+			result += " "
+		}
+	}
+	return result
 }

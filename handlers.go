@@ -27,6 +27,7 @@ type transfer struct {
 }
 
 var spatialPooler *SpatialPooler
+var inputNeurons []*Neuron
 
 // LearningsHandler returns a json rep of spatialpooler.
 func LearningsHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,17 +36,20 @@ func LearningsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	image := Images[params["image"]]
-	encoded := Encode(image, 19, 0.04)
+	if inputNeurons == nil {
+		inputNeurons = MakeInputNeurons(19, 11)
+	}
+	Encode(image, inputNeurons, 0.04, 19)
 	if spatialPooler == nil {
-		spatialPooler = NewSpatialPooler(100, 40, 19*11)
+		spatialPooler = NewSpatialPooler(10, 40, inputNeurons)
 	}
 	threshold := 5
 	overlap := 4
-	spatialPooler.Activate(encoded, threshold, overlap, true)
+	spatialPooler.Activate(threshold, overlap, true)
 	json, _ := json.Marshal(&transfer{
 		SpatialPooler:    spatialPooler,
 		Image:            image,
-		Encoded:          encoded,
+		Encoded:          InputNeuronsToString(inputNeurons),
 		Overlap:          overlap,
 		Threshold:        threshold,
 		InputSpaceWidth:  19,

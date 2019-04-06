@@ -1,6 +1,8 @@
 package main
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 // Neuron is the connection from a spatial pooler neuron to many inputs
 type Neuron struct {
@@ -13,22 +15,18 @@ type Neuron struct {
 
 // NewNeuron creates an initialized neuron
 func NewNeuron(id string, inputSpacePotentialPoolPercent int, inputSpaceSize int) *Neuron {
+	connectionPoolSize := int(float32(inputSpaceSize) * (float32(inputSpacePotentialPoolPercent) / 100))
 	n := &Neuron{
 		ID:                  id,
 		proximalInputLookup: map[int]int{},
-		ProximalInputs:      []*Dendrite{},
+		ProximalInputs:      make([]*Dendrite, connectionPoolSize),
 	}
-	maxConnections := int(float32(inputSpaceSize) * (float32(inputSpacePotentialPoolPercent) / 100))
-	position := 0
 	inputSpaceRandom := NewUniqueRand(inputSpaceSize)
-	for j := 0; j < inputSpaceSize && len(n.ProximalInputs) < maxConnections; j++ {
-		if rand.Int()%100 < inputSpacePotentialPoolPercent {
-			inputCoordinate := inputSpaceRandom.Int()
-			permanence := rand.Int() % 10
-			n.ProximalInputs = append(n.ProximalInputs, NewDendrite(inputCoordinate, permanence))
-			n.proximalInputLookup[inputCoordinate] = position
-			position++
-		}
+	for j := 0; j < len(n.ProximalInputs); j++ {
+		inputCoordinate := inputSpaceRandom.Int()
+		permanence := rand.Int() % 10
+		n.ProximalInputs[j] = NewDendrite(inputCoordinate, permanence)
+		n.proximalInputLookup[inputCoordinate] = j
 	}
 	return n
 }

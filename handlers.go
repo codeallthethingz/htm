@@ -41,7 +41,7 @@ func LearningsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	Encode(image, eyeInputNeurons, 0.04, 19)
 	if spatialPooler == nil {
-		spatialPooler = NewSpatialPooler(4, 10, 0.4, eyeInputNeurons)
+		spatialPooler = NewSpatialPooler(4, 100, 0.4, eyeInputNeurons)
 	}
 	threshold := 5
 	overlap := 4

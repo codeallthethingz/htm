@@ -3,10 +3,10 @@ package main
 import "fmt"
 
 // Encode turn a 2d image into a a set of turned on bits at a specific sparsity
-func Encode(obj string, inputNeurons []*Neuron, sparsity float32, width int) {
+func Encode(obj string, inputNeurons []*Neuron, sparsity float64, width int) {
 	onBits, offBits := CountBits(obj)
 	totalBits := offBits + onBits
-	target := int(float32(totalBits) * sparsity)
+	target := int(float64(totalBits) * sparsity)
 	encoded := turnOffBitsLinear(obj, width, onBits, target)
 
 	for c := range encoded {
@@ -65,7 +65,7 @@ func MakeInputNeurons(width int, height int) []*Neuron {
 	neurons := make([]*Neuron, width*height)
 	for i := 0; i < len(neurons); i++ {
 		neurons[i] = &Neuron{
-			ID: fmt.Sprintf("(%d,%d)", i%width, int(float32(i)/float32(width))),
+			ID: fmt.Sprintf("(%d,%d)", i%width, int(float64(i)/float64(width))),
 		}
 	}
 	return neurons

@@ -2,24 +2,45 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 // SpatialPooler is a set of neurons connecting to an input space
 type SpatialPooler struct {
-	Neurons      []*Neuron `json:"neurons"`
-	inputNeurons []*Neuron //  reference list so you don't have to pass in the input everytime.
+	Neurons           []*Neuron `json:"neurons"`
+	MiniColumnNeurons []*Neuron `json:"miniColumnNeurons"`
+	inputNeurons      []*Neuron //  reference list so you don't have to pass in the input everytime.
 }
 
 // NewSpatialPooler create a new pooler.
-func NewSpatialPooler(spatialPoolerSize int, inputSpacePotentialPoolPercent int, inputNeurons []*Neuron) *SpatialPooler {
+func NewSpatialPooler(temporalPoolingSize int, spatialPoolerSize int, potentialPoolPercent float64, inputNeurons []*Neuron) *SpatialPooler {
 	spatialPooler := &SpatialPooler{
-		Neurons:      make([]*Neuron, spatialPoolerSize),
-		inputNeurons: inputNeurons,
+		Neurons:           make([]*Neuron, spatialPoolerSize),
+		MiniColumnNeurons: make([]*Neuron, spatialPoolerSize*temporalPoolingSize),
+		inputNeurons:      inputNeurons,
 	}
+	// Create all the neurons
 	for i := 0; i < len(spatialPooler.Neurons); i++ {
-		spatialPooler.Neurons[i] = NewNeuron(fmt.Sprintf("c%d", i), inputSpacePotentialPoolPercent, inputNeurons)
+		id := fmt.Sprintf("c%d", i)
+		// Create mini column abstraction - neurons that all fire (burst) when the primary neuron fire or
+		// surpress if one is in a predictive state.
+		for j := 0; j < temporalPoolingSize; j++ {
+			spatialPooler.MiniColumnNeurons[i*temporalPoolingSize+j] = NewNeuron(fmt.Sprintf("%sm%d", id, j), 0, nil, nil)
+		}
+		spatialPooler.Neurons[i] = NewNeuron(id, potentialPoolPercent, inputNeurons, spatialPooler.MiniColumnNeurons[i*temporalPoolingSize:i*temporalPoolingSize+temporalPoolingSize])
 	}
+
+	// Create Distal Connections
+	allNeurons := spatialPooler.getAllNeurons()
+	for _, neuron := range allNeurons {
+		neuron.ConnectDistal(allNeurons, potentialPoolPercent, temporalPoolingSize)
+	}
+
 	return spatialPooler
+}
+
+func (sp *SpatialPooler) getAllNeurons() []*Neuron {
+	return append(sp.Neurons, sp.MiniColumnNeurons...)
 }
 
 // Activate the neurons in the spatial pooler for an enoded input
@@ -65,10 +86,18 @@ func (sp *SpatialPooler) Print(width int, height int) {
 			if c%width == 0 {
 				fmt.Print("\n")
 			}
+			distal := "["
+			for _, d := range sp.Neurons[i].DistalInputs {
+				if len(d.ConnectedNeuron.ID) == 2 {
+					distal += "  "
+				}
+				distal += d.ConnectedNeuron.ID + ","
+			}
+			distal += "]"
 			if sp.Neurons[i].IsConnected(inputNeuron) {
-				fmt.Print(sp.Neurons[i].GetDendrite(inputNeuron).Permanence)
+				fmt.Printf("|%d%s| ", sp.Neurons[i].GetDendrite(inputNeuron).Permanence, distal)
 			} else {
-				fmt.Print(" ")
+				fmt.Print("|" + strings.Repeat("_", len(distal)+1) + "| ")
 			}
 		}
 		fmt.Print("\n")

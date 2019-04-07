@@ -7,7 +7,7 @@ import (
 // Neuron is the connection from a spatial pooler neuron to many inputs
 type Neuron struct {
 	columnFamily        string
-	proximalInputLookup map[*Neuron]*Dendrite
+	proximalInputLookup map[string]*Dendrite
 	ProximalInputs      []*Dendrite `json:"proximalInputs"`
 	MiniColumnNeurons   []*Neuron   `json:"miniColumnNeurons"`
 	DistalInputs        []*Dendrite `json:"distalInputs"`
@@ -19,11 +19,14 @@ type Neuron struct {
 
 // NewNeuron creates an initialized neuron
 func NewNeuron(id string, potentialPoolPercent float64, inputNeurons []*Neuron, miniColumnNeurons []*Neuron) *Neuron {
+	if id == "" {
+		panic("must not create a neuron with empty ID")
+	}
 	connectionPoolSize := int(float64(len(inputNeurons)) * potentialPoolPercent)
 	n := &Neuron{
 		ID:                  id,
 		columnFamily:        id,
-		proximalInputLookup: map[*Neuron]*Dendrite{},
+		proximalInputLookup: map[string]*Dendrite{},
 		ProximalInputs:      make([]*Dendrite, connectionPoolSize),
 		MiniColumnNeurons:   miniColumnNeurons,
 	}
@@ -36,7 +39,10 @@ func NewNeuron(id string, potentialPoolPercent float64, inputNeurons []*Neuron, 
 			inputNeuron := inputNeurons[inputNeuronsRandom.Int()]
 			permanence := rand.Int() % 10
 			n.ProximalInputs[j] = NewDendrite(inputNeuron, permanence)
-			n.proximalInputLookup[inputNeuron] = n.ProximalInputs[j]
+			if inputNeuron.ID == "" {
+				panic("must not create a neuron with no ID")
+			}
+			n.proximalInputLookup[inputNeuron.ID] = n.ProximalInputs[j]
 		}
 	}
 
@@ -60,12 +66,12 @@ func (n *Neuron) ConnectDistal(allNeurons []*Neuron, potentialPoolPercent float6
 
 // IsConnected is this neuron connected to the input
 func (n *Neuron) IsConnected(inputNeuron *Neuron) bool {
-	_, ok := n.proximalInputLookup[inputNeuron]
+	_, ok := n.proximalInputLookup[inputNeuron.ID]
 	return ok
 }
 
 // GetDendrite get a dendrite connected to this coordinate
 func (n *Neuron) GetDendrite(inputNeuron *Neuron) *Dendrite {
-	dendrite, _ := n.proximalInputLookup[inputNeuron]
+	dendrite, _ := n.proximalInputLookup[inputNeuron.ID]
 	return dendrite
 }

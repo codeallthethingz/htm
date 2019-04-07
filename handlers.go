@@ -19,7 +19,7 @@ type transfer struct {
 	SpatialPooler    *SpatialPooler `json:"spatialPooler"`
 	Image            string         `json:"image"`
 	Encoded          string         `json:"encoded"`
-	Threshold        int            `json:"theshold"`
+	Threshold        int            `json:"threshold"`
 	Overlap          int            `json:"overlap"`
 	Active           bool           `json:"active"`
 	InputSpaceWidth  int            `json:"inputSpaceWidth"`
@@ -41,7 +41,7 @@ func LearningsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	Encode(image, eyeInputNeurons, 0.04, 19)
 	if spatialPooler == nil {
-		spatialPooler = NewSpatialPooler(2, 2, 1, eyeInputNeurons)
+		spatialPooler = NewSpatialPooler(4, 10, 0.4, eyeInputNeurons)
 	}
 	threshold := 5
 	overlap := 4

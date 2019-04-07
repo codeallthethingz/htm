@@ -2,15 +2,15 @@ package main
 
 // Dendrite is a connection to some axon somewhere.
 type Dendrite struct {
-	ConnectedNeuron *Neuron `json:"connectedNeuron"`
-	Permanence      int     `json:"permanence"`
+	ConnectedNeuronID string `json:"connectedNeuronId"`
+	Permanence        int    `json:"permanence"`
 }
 
 // NewDendrite create a new dendrite
 func NewDendrite(connectedNeuron *Neuron, permanence int) *Dendrite {
 	return &Dendrite{
-		ConnectedNeuron: connectedNeuron,
-		Permanence:      permanence,
+		ConnectedNeuronID: connectedNeuron.ID,
+		Permanence:        permanence,
 	}
 }
 

@@ -49,7 +49,7 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlapThreshold int,
 		score := 0
 		for _, dendrite := range neuron.ProximalInputs {
 			for _, inputNeuron := range sp.inputNeurons {
-				if inputNeuron.Active && inputNeuron == dendrite.ConnectedNeuron {
+				if inputNeuron.Active && inputNeuron.ID == dendrite.ConnectedNeuronID {
 					if dendrite.Permanence >= connectionThreshold { // TODO this line could be 2 lines up speeding up things
 						score++
 					}
@@ -64,7 +64,7 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlapThreshold int,
 			if learning {
 				for _, dendrite := range neuron.ProximalInputs {
 					for _, inputNeuron := range sp.inputNeurons {
-						if inputNeuron == dendrite.ConnectedNeuron {
+						if inputNeuron.ID == dendrite.ConnectedNeuronID {
 							if inputNeuron.Active {
 								dendrite.IncPermanence()
 							} else {
@@ -82,16 +82,19 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlapThreshold int,
 func (sp *SpatialPooler) Print(width int, height int) {
 	for i := 0; i < len(sp.Neurons); i++ {
 		fmt.Printf("neuron: %d", i)
+		for _, p := range sp.Neurons[i].proximalInputLookup {
+			fmt.Printf(" %s ", p.ConnectedNeuronID)
+		}
 		for c, inputNeuron := range sp.inputNeurons {
 			if c%width == 0 {
 				fmt.Print("\n")
 			}
 			distal := "["
 			for _, d := range sp.Neurons[i].DistalInputs {
-				if len(d.ConnectedNeuron.ID) == 2 {
+				if len(d.ConnectedNeuronID) == 2 {
 					distal += "  "
 				}
-				distal += d.ConnectedNeuron.ID + ","
+				distal += d.ConnectedNeuronID + ","
 			}
 			distal += "]"
 			if sp.Neurons[i].IsConnected(inputNeuron) {

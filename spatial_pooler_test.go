@@ -9,9 +9,7 @@ import (
 )
 
 func TestMiniColumns(t *testing.T) {
-	inputNeurons := []*Neuron{
-		&Neuron{}, &Neuron{}, &Neuron{}, &Neuron{},
-	}
+	inputNeurons := MakeInputNeurons(2, 2)
 	spatialPooler := NewSpatialPooler(2, 4, 1, inputNeurons)
 	for i := 0; i < 4; i++ {
 		require.Equal(t, 2, len(spatialPooler.Neurons[i].MiniColumnNeurons))
@@ -19,11 +17,7 @@ func TestMiniColumns(t *testing.T) {
 }
 func TestDistalConnections(t *testing.T) {
 	rand.Seed(5)
-	inputNeurons := []*Neuron{
-		&Neuron{}, &Neuron{}, &Neuron{},
-		&Neuron{}, &Neuron{}, &Neuron{},
-		&Neuron{}, &Neuron{}, &Neuron{},
-	}
+	inputNeurons := MakeInputNeurons(3, 3)
 	temporalMemorySize := 4
 	spatialPoolerSize := 9
 	potentialPoolPercent := 0.4
@@ -35,9 +29,7 @@ func TestDistalConnections(t *testing.T) {
 }
 
 func TestNewSpatialPooler(t *testing.T) {
-	inputNeurons := []*Neuron{
-		&Neuron{}, &Neuron{}, &Neuron{}, &Neuron{},
-	}
+	inputNeurons := MakeInputNeurons(2, 2)
 	spatialPooler := NewSpatialPooler(0, 4, 1, inputNeurons)
 	require.Equal(t, 4, len(spatialPooler.Neurons))
 	for i := 0; i < 4; i++ {
@@ -46,9 +38,7 @@ func TestNewSpatialPooler(t *testing.T) {
 }
 
 func TestNewSpatialPoolerConnectionPool(t *testing.T) {
-	inputNeurons := []*Neuron{
-		&Neuron{}, &Neuron{}, &Neuron{}, &Neuron{},
-	}
+	inputNeurons := MakeInputNeurons(2, 2)
 	rand.Seed(0)
 	spatialPooler := NewSpatialPooler(0, 4, 0.5, inputNeurons)
 	require.Equal(t, 4, len(spatialPooler.Neurons))
@@ -58,8 +48,10 @@ func TestNewSpatialPoolerConnectionPool(t *testing.T) {
 }
 
 func TestActivate(t *testing.T) {
-	inputNeurons := []*Neuron{
-		&Neuron{Active: true}, &Neuron{Active: true}, &Neuron{Active: true}, &Neuron{Active: true},
+	inputNeurons := MakeInputNeurons(2, 2)
+
+	for _, neuron := range inputNeurons {
+		neuron.Active = true
 	}
 	spatialPooler := NewSpatialPooler(0, 4, 1, inputNeurons)
 	spatialPooler.Activate(0, 2, false)
@@ -69,9 +61,9 @@ func TestActivate(t *testing.T) {
 }
 
 func TestLearn(t *testing.T) {
-	inputNeurons := []*Neuron{
-		&Neuron{Active: true}, &Neuron{Active: true}, &Neuron{Active: false}, &Neuron{Active: false},
-	}
+	inputNeurons := MakeInputNeurons(2, 2)
+	inputNeurons[0].Active = true
+	inputNeurons[1].Active = true
 	rand.Seed(0)
 	spatialPooler := NewSpatialPooler(0, 4, 1, inputNeurons)
 	initial1 := spatialPooler.Neurons[3].GetDendrite(inputNeurons[1]).Permanence

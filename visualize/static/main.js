@@ -56,20 +56,24 @@ $(() => {
       }
       neuron.proximalInputs.forEach(dendrite => {
         let permanence = dendrite.permanence
-        let coord = dendrite.connectedNeuron.id
-        let nx = coord.substring(1).split(',')[0]
-        let ny = coord.substring(1, coord.length -1).split(',')[1]
+        let coord = dendrite.connectedNeuronId
+        let nx = parseInt(coord.substring(1).split(',')[0])
+        let ny = parseInt(coord.substring(1, coord.length -1).split(',')[1])
         ctx.fillStyle = '#FFFFFF'
         if (permanence > threshold) {
           ctx.fillStyle = '#FFCCCC'
         }
         if (permanence > threshold && encoded && encoded.charAt(ny*object.inputSpaceWidth+nx) === 'X') {
-          ctx.fillStyle = '#7777FF'
+          ctx.fillStyle = '#000000'
         }
-        const x = (nx) * cellWidth + currentXOffset
+        const x = nx * cellWidth + currentXOffset
         const y = ny * cellHeight + currentYOffset
         ctx.fillRect(x, y, cellWidth, cellHeight)
         ctx.fillStyle = '#000000'
+
+        if (permanence > threshold && encoded && encoded.charAt(ny*object.inputSpaceWidth+nx) === 'X') {
+          ctx.fillStyle = '#FFFFFF'
+        }
         ctx.fillText(permanence == 0 ? "." : permanence > threshold ? permanence : permanence, x, y - 2 + cellHeight)
       })
       currentXOffset += xOffset

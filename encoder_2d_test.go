@@ -46,7 +46,7 @@ func TestEncodeCup(t *testing.T) {
 	Encode(testCup, neurons, 0.04, 19)
 	onBits, offBits := CountBits(testCup)
 	onBitsEncoded := count(neurons)
-	onBitsEncodedTarget := int(float32(onBits+offBits) * 0.04)
+	onBitsEncodedTarget := int(float64(onBits+offBits) * 0.04)
 	require.True(t, (onBitsEncodedTarget*2) > onBitsEncoded)
 }
 
@@ -58,7 +58,7 @@ func TestEncodeZero(t *testing.T) {
 	Encode(testZero, neurons, 0.04, width)
 	onBits, offBits := CountBits(testZero)
 	onBitsEncoded := count(neurons)
-	onBitsEncodedTarget := int(float32(onBits+offBits) * 0.04)
+	onBitsEncodedTarget := int(float64(onBits+offBits) * 0.04)
 	require.True(t, (onBitsEncodedTarget*2) > onBitsEncoded)
 }
 

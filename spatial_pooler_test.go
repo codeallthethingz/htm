@@ -8,7 +8,47 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMiniColumns(t *testing.T) {
+func TestPrediction(t *testing.T) {
+	rand.Seed(0)
+	inputNeurons := MakeInputNeurons(2, 2)
+
+	spatialPooler := NewSpatialPooler(2, 4, .5, inputNeurons)
+	for i := 0; i < 4; i++ {
+		require.Equal(t, 2, len(spatialPooler.Neurons[i].MiniColumnNeurons))
+	}
+	spatialPooler.Print(4, 1)
+	fmt.Println()
+
+	inputNeurons[0].Active = false
+	inputNeurons[1].Active = true
+	inputNeurons[2].Active = false
+	inputNeurons[3].Active = true
+	spatialPooler.Activate(2, 2, true)
+	for _, neuron := range spatialPooler.Neurons {
+		for _, miniNeuron := range neuron.MiniColumnNeurons {
+			require.Equal(t, neuron.Active, miniNeuron.Active)
+		}
+	}
+	distalPermenanceBefore := spatialPooler.Neurons[3].DistalInputs[1].Permanence
+	require.Equal(t, 4, distalPermenanceBefore)
+	require.Equal(t, true, spatialPooler.Neurons[3].Predictive)
+	spatialPooler.Print(4, 1)
+	fmt.Println()
+
+	inputNeurons[0].Active = true
+	inputNeurons[1].Active = false
+	inputNeurons[2].Active = false
+	inputNeurons[3].Active = true
+	spatialPooler.Activate(2, 2, true)
+
+	distalPermenanceAfter := spatialPooler.Neurons[3].DistalInputs[1].Permanence
+	require.Equal(t, 5, distalPermenanceAfter)
+	require.Equal(t, true, spatialPooler.Neurons[3].Active)
+	require.Equal(t, false, spatialPooler.Neurons[3].MiniColumnNeurons[0].Active)
+	spatialPooler.Print(4, 1)
+	fmt.Println()
+}
+func TestSetupMiniColumns(t *testing.T) {
 	inputNeurons := MakeInputNeurons(2, 2)
 	spatialPooler := NewSpatialPooler(2, 4, 1, inputNeurons)
 	for i := 0; i < 4; i++ {

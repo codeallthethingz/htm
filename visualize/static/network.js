@@ -7,6 +7,7 @@ import OrbitControls from 'three-orbitcontrols'
 const onImage = new THREE.MeshBasicMaterial({ opacity: .8, transparent: true, color: 'rgba(0,200,0)' });
 const offImage = new THREE.MeshBasicMaterial({ opacity: 0.1, transparent: true, color: 'rgba(0,190,0)' });
 const offMiniColumn = new THREE.MeshBasicMaterial({ opacity: 0.5, transparent: true, color: 'rgba(40,100,40)' });
+const onMiniColumn = new THREE.MeshBasicMaterial({ opacity: 0.5, transparent: true, color: 'rgba(40,255,40)' });
 
 
 function learnLive(image) {
@@ -83,8 +84,8 @@ function draw(object) {
   spatialPooler.neurons.forEach(neuron => {
     let minicount = 0
     neuron.miniColumnNeurons.forEach(mn => {
-      var cube = new THREE.Mesh(geometryMiniColumNeuron, offMiniColumn);
-      cube.position.x = currentXOffset - (w * 0.5 * 0.1) + minicount*0.1
+      var cube = new THREE.Mesh(geometryMiniColumNeuron, mn.active ? onMiniColumn : offMiniColumn);
+      cube.position.x = currentXOffset - (w * 0.5 * 0.1) + minicount * 0.1
       cube.position.y = currentYOffset - (h * 0.5 * 0.1) + 0.1
       cube.position.z = -1
       scene.add(cube);
@@ -105,9 +106,7 @@ function draw(object) {
       if (encoded.charAt(ny * w + nx) === 'X') {
         if (permanence >= threshold) {
           material = new THREE.MeshBasicMaterial({ opacity: 0.8, transparent: true, color: 'rgba(200,0,0)' });
-        } else {
-          material = new THREE.MeshBasicMaterial({ opacity: 0.8, transparent: true, color: 'rgba(200,200,200)' });
-        }
+        } 
       }
       var cube = new THREE.Mesh(geometryNeuron, material);
       cube.position.x = currentXOffset + (nx * 0.1 - (w * 0.5 * 0.1))

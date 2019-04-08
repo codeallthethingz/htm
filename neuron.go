@@ -15,6 +15,7 @@ type Neuron struct {
 	ID                  string      `json:"id"`
 	Active              bool        `json:"active"`
 	Predictive          bool        `json:"predictive"`
+	PreviouslyActive    bool        `json:"previouslyActive"`
 }
 
 // NewNeuron creates an initialized neuron
@@ -74,4 +75,43 @@ func (n *Neuron) IsConnected(inputNeuron *Neuron) bool {
 func (n *Neuron) GetDendrite(inputNeuron *Neuron) *Dendrite {
 	dendrite, _ := n.proximalInputLookup[inputNeuron.ID]
 	return dendrite
+}
+
+// GetActive get all the active neurons in this column
+func (n *Neuron) GetActive() []*Neuron {
+	active := []*Neuron{}
+	if n.Active {
+		active = append(active, n)
+	}
+	for _, miniNeuron := range n.MiniColumnNeurons {
+		if miniNeuron.Active {
+			active = append(active, miniNeuron)
+		}
+	}
+	return active
+}
+
+// AllActive is this neuron and all the mini column neurons active
+func (n *Neuron) AllActive() bool {
+	return len(n.MiniColumnNeurons)+1 == len(n.GetActive())
+}
+
+// SomeActive at least one but not all the neurons are active in this column
+func (n *Neuron) SomeActive() bool {
+	active := len(n.GetActive())
+	return active > 0 && active < len(n.MiniColumnNeurons)+1
+}
+
+// GetPredictive returns a list of all the predictive neurons.
+func (n *Neuron) GetPredictive() []*Neuron {
+	predictive := []*Neuron{}
+	if n.Predictive {
+		predictive = append(predictive, n)
+	}
+	for _, miniNeuron := range n.MiniColumnNeurons {
+		if miniNeuron.Predictive {
+			predictive = append(predictive, miniNeuron)
+		}
+	}
+	return predictive
 }

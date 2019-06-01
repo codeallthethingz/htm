@@ -55,8 +55,8 @@ $(() => {
         ctx.fillRect(currentXOffset, currentYOffset, canvasWidth, canvasHeight)
       }
       neuron.proximalInputs.forEach(dendrite => {
-        let permanence = dendrite.permanence
-        let coord = dendrite.connectedNeuronId
+        let permanence = dendrite.p
+        let coord = dendrite.cId
         let nx = parseInt(coord.substring(1).split(',')[0])
         let ny = parseInt(coord.substring(1, coord.length -1).split(',')[1])
 

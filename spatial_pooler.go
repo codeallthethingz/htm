@@ -42,8 +42,7 @@ func (sp *SpatialPooler) getAllNeurons() []*Neuron {
 	return append(sp.Neurons, sp.MiniColumnNeurons...)
 }
 
-// Deactivate reset all the neurons
-func (sp *SpatialPooler) Deactivate() {
+func (sp *SpatialPooler) deactivate() {
 	for _, neuron := range sp.getAllNeurons() {
 		if neuron.Active {
 			neuron.PreviouslyActive = true
@@ -55,14 +54,18 @@ func (sp *SpatialPooler) Deactivate() {
 // Depredict reset all the neurons predictive state
 func (sp *SpatialPooler) Depredict() {
 	for _, neuron := range sp.getAllNeurons() {
+		neuron.PreviouslyPredictive = false
+		if neuron.Predictive {
+			neuron.PreviouslyPredictive = true
+		}
 		neuron.Predictive = false
 		neuron.PreviouslyActive = false
 	}
 }
 
 // Activate the neurons in the spatial pooler for an enoded input
-func (sp *SpatialPooler) Activate(connectionThreshold int, overlapThreshold int, learning bool) {
-	sp.Deactivate()
+func (sp *SpatialPooler) Activate(connectionThreshold int, proximalOverlapThreshold int, distalOverlapThreshold int, learning bool) {
+	sp.deactivate()
 	currentlyActive := map[string]bool{}
 	previouslyActive := sp.getPreviouslyActive()
 
@@ -78,13 +81,14 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlapThreshold int,
 			}
 		}
 		neuron.Score = score
-		if score >= overlapThreshold {
+		if score >= proximalOverlapThreshold {
 
 			predictive := neuron.GetPredictive()
 			if len(predictive) > 0 {
 				for _, n := range predictive {
 					n.Active = true
-					n.Predictive = false
+					currentlyActive[neuron.ID] = true
+					n.PreviouslyPredictive = true
 					for _, d := range n.DistalInputs {
 						_, ok := previouslyActive[d.ConnectedNeuronID]
 						if ok {
@@ -121,7 +125,7 @@ func (sp *SpatialPooler) Activate(connectionThreshold int, overlapThreshold int,
 	}
 
 	sp.Depredict()
-	sp.activatePredictive(currentlyActive, connectionThreshold, overlapThreshold)
+	sp.activatePredictive(currentlyActive, connectionThreshold, distalOverlapThreshold)
 
 }
 
@@ -134,8 +138,12 @@ func (sp *SpatialPooler) getPreviouslyActive() map[string]bool {
 	}
 	return result
 }
-func (sp *SpatialPooler) activatePredictive(currentlyActive map[string]bool, connectionThreshold int, overlapThreshold int) {
+
+func (sp *SpatialPooler) activatePredictive(currentlyActive map[string]bool, connectionThreshold int, distalOverlapThreshold int) {
 	for _, neuron := range sp.getAllNeurons() {
+		if neuron.Active {
+			continue
+		}
 		score := 0
 		for _, d := range neuron.DistalInputs {
 			_, ok := currentlyActive[d.ConnectedNeuronID]
@@ -143,11 +151,10 @@ func (sp *SpatialPooler) activatePredictive(currentlyActive map[string]bool, con
 				score++
 			}
 		}
-		if score >= overlapThreshold {
+		if score >= distalOverlapThreshold {
 			neuron.Predictive = true
 		}
 	}
-
 }
 
 // Print to the command line

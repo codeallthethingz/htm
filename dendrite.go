@@ -2,8 +2,8 @@ package main
 
 // Dendrite is a connection to some axon somewhere.
 type Dendrite struct {
-	ConnectedNeuronID string `json:"connectedNeuronId"`
-	Permanence        int    `json:"permanence"`
+	ConnectedNeuronID string `json:"cId"`
+	Permanence        int    `json:"p"`
 }
 
 // NewDendrite create a new dendrite
